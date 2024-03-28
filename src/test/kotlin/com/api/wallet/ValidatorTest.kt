@@ -6,6 +6,7 @@ import com.api.wallet.domain.user.repository.UserRepository
 import com.api.wallet.domain.wallet.repository.WalletRepository
 import com.api.wallet.enums.ChainType
 import com.api.wallet.enums.NetworkType
+import com.api.wallet.service.api.NftService
 import com.api.wallet.service.api.WalletService
 import com.api.wallet.service.api.WalletTransactionService
 import com.api.wallet.service.infura.InfuraApiService
@@ -30,6 +31,7 @@ class ValidatorTest(
     @Autowired private val userRepository: UserRepository,
     @Autowired private val walletRepository: WalletRepository,
     @Autowired private val walletTransactionService: WalletTransactionService,
+    @Autowired private val nftService: NftService,
 ) {
 
     @Test
@@ -120,6 +122,12 @@ class ValidatorTest(
     fun asd() {
         val res = "2024-03-19T12:56:07Z".toTimestamp()
         println(res)
+    }
+
+    @Test
+    fun readAllNfts() {
+        val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
+        nftService.readAllNftByWallet(address).blockFirst()
     }
 
 

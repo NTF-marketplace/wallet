@@ -7,13 +7,13 @@ import java.math.BigDecimal
 @Table("transaction")
 class Transaction(
     @Id val id: Long? = null,
-    val nftId: String,
+    val nftId: String, // 외래키
     val toAddress: String,
     val fromAddress: String,
-    val amount: Int, // 수량
-    val value: BigDecimal, // 가치
+    val amount: Int,
+    val value: BigDecimal,
     val hash: String?,
     val blockTimestamp: Long?,
-    val walletId: String?,
+    val walletId: String?, // 외래키
 ){
 }

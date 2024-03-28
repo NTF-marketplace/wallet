@@ -20,7 +20,8 @@ class WalletTransactionService(
     private val walletRepository: WalletRepository,
     private val nftService: NftService,
 ) {
-
+    //TODO("페이징 처리")
+    //TODO("반환값 재정의 : nft 메타데이터 필요")
     @Transactional
     fun readAllTransactions(address: String) : Flux<Transaction> {
         return walletRepository.findAllByAddress(address).flatMap { wallet->

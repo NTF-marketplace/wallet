@@ -44,3 +44,9 @@ CREATE TABLE IF NOT EXISTS transaction (
     wallet_id VARCHAR(255) REFERENCES wallet(address)
 );
 
+CREATE TABLE IF NOT EXISTS wallet_nft (
+    id SERIAL PRIMARY KEY,
+    wallet_id VARCHAR(255) REFERENCES wallet(address),
+    nft_id VARCHAR(255) REFERENCES nft(token_address)
+)
+
