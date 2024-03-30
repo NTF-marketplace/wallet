@@ -2,6 +2,7 @@ package com.api.wallet
 
 import com.api.wallet.controller.dto.request.ValidateRequest
 import com.api.wallet.domain.network.repository.NetworkRepository
+import com.api.wallet.domain.transaction.Transaction
 import com.api.wallet.domain.user.repository.UserRepository
 import com.api.wallet.domain.wallet.repository.WalletRepository
 import com.api.wallet.enums.ChainType
@@ -17,6 +18,9 @@ import com.api.wallet.validator.SignatureValidator
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import reactor.core.publisher.Flux
 import java.lang.System.currentTimeMillis
 
 
@@ -115,7 +119,15 @@ class ValidatorTest(
     @Test
     fun tansferasdas() {
         val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
-        walletTransactionService.readAllTransactions(address).collectList().block()
+        val pagebale = PageRequest.of(0,2)
+        val networkType = NetworkType.POLYGON
+
+        val transaction: Page<Transaction>? = walletTransactionService.readAllTransactions(address,networkType,pagebale).block()
+            println("total element : "+transaction?.totalElements)
+            println("totalPages : " + transaction?.totalPages)
+        transaction?.content?.forEach {
+                println(it.nftId)
+            }
     }
 
     @Test
@@ -127,7 +139,15 @@ class ValidatorTest(
     @Test
     fun readAllNfts() {
         val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
-        nftService.readAllNftByWallet(address).blockFirst()
+        val pagebale = PageRequest.of(0,3)
+        val nftList= nftService.readAllNftByWallet(address,null,pagebale).block()
+
+            println("total element : "+nftList?.totalElements)
+            println("totalPages : " + nftList?.totalPages)
+        nftList?.content?.forEach {
+                println(it.nftId)
+            }
+
     }
 
 
