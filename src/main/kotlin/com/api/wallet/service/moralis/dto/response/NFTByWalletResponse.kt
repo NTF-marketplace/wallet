@@ -19,7 +19,7 @@ data class NFTResult(
     @JsonProperty("owner_of") val ownerOf: String,
     @JsonProperty("block_number") val blockNumber: String,
     @JsonProperty("block_number_minted") val blockNumberMinted: String?,
-    @JsonProperty("token_uri") val tokenUri: String,
+    @JsonProperty("token_uri") val tokenUri: String?,
     val metadata: String?,
     @JsonProperty("normalized_metadata") val normalizedMetadata: String?,
     val media: String?,

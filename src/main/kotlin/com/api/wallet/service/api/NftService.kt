@@ -45,26 +45,29 @@ class NftService(
 
         return wallets
             .flatMap { wallet ->
-                getNftByWallet(wallet, pageable)
+                getNftByWallet(wallet)
             }
             .collectList()
-            .zipWith(walletNftRepository.count())
-            .map { PageImpl(it.t1, pageable, it.t2) }
-
+            .map {
+                val start = pageable.offset.toInt()
+                val end = (start + pageable.pageSize).coerceAtMost(it.size)
+                val page = if (start <= end) it.subList(start, end) else listOf()
+                PageImpl(page, pageable, it.size.toLong())
+            }
     }
 
-    private fun getNftByWallet(wallet: Wallet, pageable: Pageable): Flux<WalletNft> {
-        val response = moralisService.getNFTsByAddress(wallet.address, wallet.networkType.convertNetworkTypeToChainType())
-        val getNftsByWallet = walletNftRepository.findByWalletId(wallet.address,pageable)
+    private fun getNftByWallet(wallet: Wallet): Flux<WalletNft> {
+        val response = moralisService.getNFTsByAddress(wallet.address, wallet.networkType.convertNetworkTypeToChainType()) //11
+        val getNftsByWallet = walletNftRepository.findByWalletId(wallet.address)
 
         return Mono.zip(response, getNftsByWallet.collectList())
             .flatMapMany { tuple ->
                 val responseNfts = tuple.t1.result.associateBy { it.tokenAddress }
-                val getNfts = tuple.t2.associateBy { it.nftId }
+                val getNfts = tuple.t2.associateBy { it.nftId } // 0
 
                 deleteToWalletNft(responseNfts, getNfts, wallet)
                     .thenMany(addToWalletNft(responseNfts, getNfts, wallet))
-                    .thenMany(walletNftRepository.findByWalletId(wallet.address,pageable))
+                    .thenMany(walletNftRepository.findByWalletId(wallet.address))
             }
     }
 
