@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono
 
 interface WalletNftRepository : ReactiveCrudRepository<WalletNft,Long> {
 
-    fun findByWalletId(address: String,pageable: Pageable?): Flux<WalletNft>
+    fun findByWalletId(address: String): Flux<WalletNft>
 
     fun deleteByNftIdAndWalletId(tokenAddress: String,walletAddress: String): Mono<Void>
 }
