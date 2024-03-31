@@ -45,7 +45,7 @@ class WalletTransactionService(
     }
 
     private fun getTransactions(wallet: Wallet, pageable: Pageable): Flux<Transaction> {
-        val updateFlux = transactionRepository.findAllByWalletIdOrderByBlockTimestampDesc(wallet.address,pageable)
+        val updateFlux = transactionRepository.findAllByWalletIdOrderByBlockTimestampDesc(wallet.id!!,pageable)
             .collectList()
             .flatMapMany {
                 val lastBlockTimestamp = it.firstOrNull()?.blockTimestamp?.plus(10000)
@@ -63,7 +63,7 @@ class WalletTransactionService(
             }
 
         return updateFlux.thenMany(
-            transactionRepository.findAllByWalletIdOrderByBlockTimestampDesc(wallet.address, pageable)
+            transactionRepository.findAllByWalletIdOrderByBlockTimestampDesc(wallet.id!!, pageable)
         )
     }
 
@@ -71,22 +71,22 @@ class WalletTransactionService(
 
     private fun saveOrUpdate(results: Flux<TransferResult>,wallet: Wallet): Flux<Transaction> {
        return results.flatMap {result ->
-           nftService.findByTokenAddress(result.tokenAddress,wallet.networkType).flatMap { nft->
+           nftService.findByTokenAddress(result.tokenAddress,wallet.networkType,result.tokenId).flatMap { nft->
                transactionRepository.save(
                    Transaction(
-                       nftId = nft.tokenAddress,
+                       nftId = nft.id!!,
                        toAddress = result.toAddress,
                        fromAddress = result.fromAddress,
                        amount = result.amount.toInt(),
                        value = result.value.toBigDecimal(),
                        hash =  result.blockHash,
                        blockTimestamp = result.blockTimestamp.toTimestamp(),
-                       walletId = wallet.address
+                       walletId = wallet.id!!
                    )
                )
            }
-
-        }
+        }.collectList()
+           .flatMapMany { Flux.fromIterable(it) }
     }
 
 }

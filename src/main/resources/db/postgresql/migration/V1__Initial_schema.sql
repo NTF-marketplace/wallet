@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS network (
 );
 
 CREATE TABLE IF NOT EXISTS wallet (
-    address VARCHAR(255) PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
+    address VARCHAR(255) NOT NULL,
     balance DECIMAL(19, 4) NOT NULL,
     created_At BIGINT,
     updated_At BIGINT,
@@ -28,25 +29,28 @@ CREATE TABLE IF NOT EXISTS wallet (
     );
 
 CREATE TABLE IF NOT EXISTS nft (
-    token_address VARCHAR(255) PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
+    token_id VARCHAR(255) NOT NULL,
+    token_address VARCHAR(255) NOT NULL,
     network_type varchar(100) REFERENCES network(type)
 );
 
 CREATE TABLE IF NOT EXISTS transaction (
     id SERIAL PRIMARY KEY,
-    nft_id VARCHAR(255) REFERENCES nft(token_address),
+    nft_id BIGINT REFERENCES nft(id),
     to_address VARCHAR(255) NOT NULL,
     from_address VARCHAR(255) NOT NULL,
     amount INT,
     value NUMERIC,
     hash VARCHAR(255),
     block_timestamp BIGINT,
-    wallet_id VARCHAR(255) REFERENCES wallet(address)
+    wallet_id BIGINT REFERENCES wallet(id)
 );
 
 CREATE TABLE IF NOT EXISTS wallet_nft (
     id SERIAL PRIMARY KEY,
-    wallet_id VARCHAR(255) REFERENCES wallet(address),
-    nft_id VARCHAR(255) REFERENCES nft(token_address)
-)
+    wallet_id BIGINT REFERENCES wallet(id),
+    nft_id BIGINT REFERENCES nft(id),
+    amount INT
+);
 
