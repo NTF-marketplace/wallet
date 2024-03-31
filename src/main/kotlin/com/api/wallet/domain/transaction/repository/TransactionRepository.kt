@@ -7,6 +7,6 @@ import reactor.core.publisher.Flux
 
 interface TransactionRepository: ReactiveCrudRepository<Transaction,Long> {
 
-    fun findAllByWalletIdOrderByBlockTimestampDesc(address: String,pageable: Pageable?): Flux<Transaction>
+    fun findAllByWalletIdOrderByBlockTimestampDesc(walletId: Long,pageable: Pageable?): Flux<Transaction>
 
 }

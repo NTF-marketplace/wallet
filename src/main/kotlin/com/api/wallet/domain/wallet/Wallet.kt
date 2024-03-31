@@ -6,7 +6,8 @@ import java.math.BigDecimal
 
 @Table("wallet")
 data class Wallet(
-    @Id val address: String,
+    @Id val id: Long? = null,
+    val address: String,
     val userId: Long,
     val networkType: String,
     var balance: BigDecimal,

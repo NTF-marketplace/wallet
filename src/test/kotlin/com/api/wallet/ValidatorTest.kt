@@ -119,7 +119,7 @@ class ValidatorTest(
     @Test
     fun tansferasdas() {
         val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
-        val pagebale = PageRequest.of(2,4)
+        val pagebale = PageRequest.of(0,20)
         val networkType = NetworkType.POLYGON
 
         val transaction: Page<Transaction>? = walletTransactionService.readAllTransactions(address,networkType,pagebale).block()
@@ -139,7 +139,7 @@ class ValidatorTest(
     @Test
     fun readAllNfts() {
         val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
-        val pagebale = PageRequest.of(0,3)
+        val pagebale = PageRequest.of(0,10)
         val nftList= nftService.readAllNftByWallet(address,null,pagebale).block()
 
             println("total element : "+nftList?.totalElements)

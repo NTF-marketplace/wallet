@@ -4,6 +4,7 @@ import com.api.wallet.domain.nft.Nft
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import reactor.core.publisher.Mono
 
-interface NftRepository : ReactiveCrudRepository<Nft,String>, NftRepositorySupport {
-    fun findByTokenAddressAndNetworkType(address: String, networkType: String): Mono<Nft>
+interface NftRepository : ReactiveCrudRepository<Nft,Long>, NftRepositorySupport {
+
+    fun findByTokenAddressAndNetworkTypeAndTokenId(address: String, networkType: String,tokenId: String): Mono<Nft>
 }

@@ -6,6 +6,7 @@ import com.api.wallet.domain.wallet.Wallet
 import com.api.wallet.domain.wallet.repository.WalletRepository
 import com.api.wallet.domain.walletNft.WalletNft
 import com.api.wallet.domain.walletNft.repository.WalletNftRepository
+import com.api.wallet.domain.walletNft.repository.WalletNftWithNft
 import com.api.wallet.enums.NetworkType
 import com.api.wallet.service.moralis.MoralisService
 import com.api.wallet.service.moralis.dto.response.NFTResult
@@ -26,13 +27,15 @@ class NftService(
     private val walletNftRepository: WalletNftRepository,
 ) {
 
-    fun findByTokenAddress(tokenAddress: String,networkType: String): Mono<Nft> {
-        return nftRepository.findByTokenAddressAndNetworkType(tokenAddress,networkType)
+    fun findByTokenAddress(tokenAddress: String,networkType: String,tokenId:String): Mono<Nft> {
+        return nftRepository.findByTokenAddressAndNetworkTypeAndTokenId(tokenAddress,networkType,tokenId)
             .switchIfEmpty(
-                nftRepository.insert(Nft(tokenAddress,networkType)
-            ))
+                nftRepository.insert(
+                    Nft(
+                    tokenId = tokenId, tokenAddress = tokenAddress, networkType = networkType)
+                )
+            )
     }
-
 
     //TODO("반환값 재정의 : nft: 메타데이터 필요")
     @Transactional
@@ -57,33 +60,36 @@ class NftService(
     }
 
     private fun getNftByWallet(wallet: Wallet): Flux<WalletNft> {
-        val response = moralisService.getNFTsByAddress(wallet.address, wallet.networkType.convertNetworkTypeToChainType()) //11
-        val getNftsByWallet = walletNftRepository.findByWalletId(wallet.address)
+        val response = moralisService.getNFTsByAddress(wallet.address, wallet.networkType.convertNetworkTypeToChainType())
+        val getNftsByWallet = walletNftRepository.findByWalletIdJoinNft(wallet.address,wallet.networkType)
 
         return Mono.zip(response, getNftsByWallet.collectList())
             .flatMapMany { tuple ->
-                val responseNfts = tuple.t1.result.associateBy { it.tokenAddress }
-                val getNfts = tuple.t2.associateBy { it.nftId } // 0
+                val responseNfts = tuple.t1.result.associateBy { Pair(it.tokenAddress,it.tokenId) }
+                val getNfts = tuple.t2.associateBy { Pair(it.nftTokenAddress,it.nftTokenId) }
+
 
                 deleteToWalletNft(responseNfts, getNfts, wallet)
                     .thenMany(addToWalletNft(responseNfts, getNfts, wallet))
-                    .thenMany(walletNftRepository.findByWalletId(wallet.address))
+                    .thenMany(walletNftRepository.findByWalletId(wallet.id!!))
             }
     }
 
 
     private fun addToWalletNft(
-        responseNftsMap: Map<String,NFTResult>,
-        getNftsMap: Map<String,WalletNft>,
+        responseNftsMap: Map<Pair<String,String>,NFTResult>,
+        getNftsMap: Map<Pair<String,String>,WalletNftWithNft>,
         wallet: Wallet,
         ): Flux<WalletNft> {
           return Flux.fromIterable(responseNftsMap.keys).filter{ !getNftsMap.containsKey(it) }
-                .flatMap { tokenAddress ->
-                     findByTokenAddress(tokenAddress,wallet.networkType).flatMap { nft->
+                .flatMap {
+                    val data = responseNftsMap[Pair(it.first,it.second)]
+                     findByTokenAddress(data!!.tokenAddress,wallet.networkType,data!!.tokenId).flatMap { nft->
                          walletNftRepository.save(
                              WalletNft(
-                                 walletId = wallet.address,
-                                 nftId = nft.tokenAddress
+                                 walletId = wallet.id!!,
+                                 nftId = nft.id!!,
+                                 amount = data.amount!!.toInt()
                              )
                          )
                      }
@@ -91,15 +97,16 @@ class NftService(
         }
 
     private fun deleteToWalletNft(
-        responseNftsMap: Map<String,NFTResult>,
-        getNftsMap: Map<String,WalletNft>,
+        responseNftsMap: Map<Pair<String,String>,NFTResult>,
+        getNftsMap: Map<Pair<String,String>,WalletNftWithNft>,
         wallet: Wallet,
     ): Flux<Void>
     {
        return Flux.fromIterable(getNftsMap.keys)
                 .filter { !responseNftsMap.containsKey(it) }
-                .flatMap { tokenAddress ->
-                    walletNftRepository.deleteByNftIdAndWalletId(tokenAddress,wallet.address)
+                .flatMap {
+                    val data = getNftsMap[Pair(it.first,it.second)]
+                    walletNftRepository.deleteByNftIdAndWalletId(data!!.nftId,data.walletId)
                 }
     }
 

@@ -6,7 +6,7 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
-interface WalletRepository : ReactiveCrudRepository<Wallet,String>, WalletRepositorySupport {
+interface WalletRepository : ReactiveCrudRepository<Wallet,Long>, WalletRepositorySupport {
     fun findByAddressAndNetworkType(address: String, networkType: String): Mono<Wallet>
     fun findAllByAddress(address: String): Flux<Wallet>
 }

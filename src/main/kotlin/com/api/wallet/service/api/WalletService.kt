@@ -6,7 +6,6 @@ import com.api.wallet.domain.user.Users
 import com.api.wallet.domain.user.repository.UserRepository
 import com.api.wallet.domain.wallet.Wallet
 import com.api.wallet.domain.wallet.repository.WalletRepository
-import com.api.wallet.enums.ChainType
 import com.api.wallet.enums.NetworkType
 import com.api.wallet.service.infura.InfuraApiService
 import com.api.wallet.util.Util.convertNetworkTypeToChainType
@@ -56,7 +55,7 @@ class WalletService(
     private fun createUserAndWallet(address: String, network: Network): Mono<Wallet> {
         return userRepository.save(Users(nickName = "Unknown"))
                 .flatMap { user ->
-                    walletRepository.insert(Wallet(
+                    walletRepository.save(Wallet(
                         address = address,
                         userId = user.id!!,
                         networkType = network.type!!,
@@ -76,13 +75,5 @@ class WalletService(
         return infuraApiService.getBalance(wallet.address, chainType)
             .map { wallet.updateBalance(it) }
             .flatMap { walletRepository.save(it)  }
-    }
-
-    private fun convertNetworkTypeToChainType(networkType: NetworkType): ChainType {
-        return when (networkType) {
-            NetworkType.ETHEREUM -> ChainType.ETHEREUM_MAINNET
-            NetworkType.POLYGON -> ChainType.POLYGON_MAINNET
-
-        }
     }
 }
