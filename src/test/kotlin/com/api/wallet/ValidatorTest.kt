@@ -10,8 +10,8 @@ import com.api.wallet.enums.NetworkType
 import com.api.wallet.service.api.NftService
 import com.api.wallet.service.api.WalletService
 import com.api.wallet.service.api.WalletTransactionService
-import com.api.wallet.service.infura.InfuraApiService
-import com.api.wallet.service.moralis.MoralisService
+import com.api.wallet.service.external.infura.InfuraApiService
+import com.api.wallet.service.external.moralis.MoralisService
 import com.api.wallet.util.Util.toIsoString
 import com.api.wallet.util.Util.toTimestamp
 import com.api.wallet.validator.SignatureValidator
@@ -113,7 +113,11 @@ class ValidatorTest(
             signature = "0x5714c3d6a6773a614091a9ac81dc8f4f6a0219349ddb4010edb6595c47b158814a9265e2c17aa7f7cfe479636a96c9f93cd665b213cc76b005c4b742edb6b27c1c",
             network = NetworkType.POLYGON
         )
-        walletService.signInOrSignUp(request).block()
+        val response  = walletService.signInOrSignUp(request).block()
+
+        println(response?.wallet?.balance)
+        println(response?.tokens?.accessToken)
+        println(response?.tokens?.refreshToken)
     }
 
     @Test

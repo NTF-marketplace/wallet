@@ -1,10 +1,10 @@
-package com.api.wallet.service.infura
+package com.api.wallet.service.external.infura
 
 import com.api.wallet.enums.ChainType
-import com.api.wallet.service.infura.dto.request.InfuraRequest
-import com.api.wallet.service.infura.dto.response.InfuraResponse
-import com.api.wallet.service.infura.dto.response.InfuraResponse.Companion.toBigDecimal
-import com.api.wallet.service.infura.dto.response.InfuraResponse.Companion.toBigInteger
+import com.api.wallet.service.external.infura.dto.request.InfuraRequest
+import com.api.wallet.service.external.infura.dto.response.InfuraResponse
+import com.api.wallet.service.external.infura.dto.response.InfuraResponse.Companion.toBigDecimal
+import com.api.wallet.service.external.infura.dto.response.InfuraResponse.Companion.toBigInteger
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient

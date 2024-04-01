@@ -1,4 +1,4 @@
-package com.api.wallet.service.infura.dto.response
+package com.api.wallet.service.external.infura.dto.response
 
 import java.math.BigDecimal
 import java.math.BigInteger
