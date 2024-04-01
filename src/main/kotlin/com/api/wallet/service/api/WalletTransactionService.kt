@@ -6,8 +6,8 @@ import com.api.wallet.domain.wallet.Wallet
 import com.api.wallet.domain.wallet.repository.WalletRepository
 import com.api.wallet.enums.ChainType
 import com.api.wallet.enums.NetworkType
-import com.api.wallet.service.moralis.MoralisService
-import com.api.wallet.service.moralis.dto.response.TransferResult
+import com.api.wallet.service.external.moralis.MoralisService
+import com.api.wallet.service.external.moralis.dto.response.TransferResult
 import com.api.wallet.util.Util.convertNetworkTypeToChainType
 import com.api.wallet.util.Util.toIsoString
 import com.api.wallet.util.Util.toTimestamp
@@ -69,9 +69,9 @@ class WalletTransactionService(
 
 
 
-    private fun saveOrUpdate(results: Flux<TransferResult>,wallet: Wallet): Flux<Transaction> {
+    private fun saveOrUpdate(results: Flux<TransferResult>, wallet: Wallet): Flux<Transaction> {
        return results.flatMap {result ->
-           nftService.findByTokenAddress(result.tokenAddress,wallet.networkType,result.tokenId).flatMap { nft->
+           nftService.findOrCreateNft(result.tokenAddress,wallet.networkType,result.tokenId).flatMap { nft->
                transactionRepository.save(
                    Transaction(
                        nftId = nft.id!!,

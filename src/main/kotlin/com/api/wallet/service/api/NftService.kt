@@ -8,8 +8,8 @@ import com.api.wallet.domain.walletNft.WalletNft
 import com.api.wallet.domain.walletNft.repository.WalletNftRepository
 import com.api.wallet.domain.walletNft.repository.WalletNftWithNft
 import com.api.wallet.enums.NetworkType
-import com.api.wallet.service.moralis.MoralisService
-import com.api.wallet.service.moralis.dto.response.NFTResult
+import com.api.wallet.service.external.moralis.MoralisService
+import com.api.wallet.service.external.moralis.dto.response.NFTResult
 import com.api.wallet.util.Util.convertNetworkTypeToChainType
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -27,7 +27,7 @@ class NftService(
     private val walletNftRepository: WalletNftRepository,
 ) {
 
-    fun findByTokenAddress(tokenAddress: String,networkType: String,tokenId:String): Mono<Nft> {
+    fun findOrCreateNft(tokenAddress: String,networkType: String,tokenId:String): Mono<Nft> {
         return nftRepository.findByTokenAddressAndNetworkTypeAndTokenId(tokenAddress,networkType,tokenId)
             .switchIfEmpty(
                 nftRepository.insert(
@@ -77,14 +77,14 @@ class NftService(
 
 
     private fun addToWalletNft(
-        responseNftsMap: Map<Pair<String,String>,NFTResult>,
+        responseNftsMap: Map<Pair<String,String>, NFTResult>,
         getNftsMap: Map<Pair<String,String>,WalletNftWithNft>,
         wallet: Wallet,
         ): Flux<WalletNft> {
           return Flux.fromIterable(responseNftsMap.keys).filter{ !getNftsMap.containsKey(it) }
                 .flatMap {
                     val data = responseNftsMap[Pair(it.first,it.second)]
-                     findByTokenAddress(data!!.tokenAddress,wallet.networkType,data!!.tokenId).flatMap { nft->
+                    findOrCreateNft(data!!.tokenAddress,wallet.networkType,data!!.tokenId).flatMap { nft->
                          walletNftRepository.save(
                              WalletNft(
                                  walletId = wallet.id!!,
@@ -97,7 +97,7 @@ class NftService(
         }
 
     private fun deleteToWalletNft(
-        responseNftsMap: Map<Pair<String,String>,NFTResult>,
+        responseNftsMap: Map<Pair<String,String>, NFTResult>,
         getNftsMap: Map<Pair<String,String>,WalletNftWithNft>,
         wallet: Wallet,
     ): Flux<Void>

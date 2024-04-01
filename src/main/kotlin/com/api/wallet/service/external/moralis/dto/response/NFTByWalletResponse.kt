@@ -1,4 +1,4 @@
-package com.api.wallet.service.moralis.dto.response
+package com.api.wallet.service.external.moralis.dto.response
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper

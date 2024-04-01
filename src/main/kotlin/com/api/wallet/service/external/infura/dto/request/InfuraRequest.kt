@@ -1,4 +1,4 @@
-package com.api.wallet.service.infura.dto.request
+package com.api.wallet.service.external.infura.dto.request
 
 data class InfuraRequest(
     val jsonrpc: String = "2.0",

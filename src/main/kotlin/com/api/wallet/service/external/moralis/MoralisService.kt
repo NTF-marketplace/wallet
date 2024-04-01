@@ -1,8 +1,8 @@
-package com.api.wallet.service.moralis
+package com.api.wallet.service.external.moralis
 
 import com.api.wallet.enums.ChainType
-import com.api.wallet.service.moralis.dto.response.NFTByWalletResponse
-import com.api.wallet.service.moralis.dto.response.NFTTransferByWallet
+import com.api.wallet.service.external.moralis.dto.response.NFTByWalletResponse
+import com.api.wallet.service.external.moralis.dto.response.NFTTransferByWallet
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient

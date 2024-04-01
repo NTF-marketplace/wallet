@@ -1,13 +1,15 @@
 package com.api.wallet.service.api
 
 import com.api.wallet.controller.dto.request.ValidateRequest
+import com.api.wallet.controller.dto.response.SignInResponse
 import com.api.wallet.domain.network.Network
 import com.api.wallet.domain.user.Users
 import com.api.wallet.domain.user.repository.UserRepository
 import com.api.wallet.domain.wallet.Wallet
 import com.api.wallet.domain.wallet.repository.WalletRepository
 import com.api.wallet.enums.NetworkType
-import com.api.wallet.service.infura.InfuraApiService
+import com.api.wallet.service.external.auth.AuthApiService
+import com.api.wallet.service.external.infura.InfuraApiService
 import com.api.wallet.util.Util.convertNetworkTypeToChainType
 import com.api.wallet.validator.SignatureValidator
 import org.slf4j.LoggerFactory
@@ -24,31 +26,40 @@ class WalletService(
     private val userRepository: UserRepository,
     private val networkService: NetworkService,
     private val infuraApiService: InfuraApiService,
+    private val authApiService: AuthApiService,
 ) {
     private final val logger = LoggerFactory.getLogger(this.javaClass)
 
-    //TODO("반환값은 wallet과 jwt")
     @Transactional
-    fun signInOrSignUp(request: ValidateRequest): Mono<Wallet> {
+    fun signInOrSignUp(request: ValidateRequest): Mono<SignInResponse> {
         return if (authenticateWallet(request)) {
-            networkService.findByType(request.network)
-                .flatMap { network ->
-                    walletRepository.findByAddressAndNetworkType(request.address, network.type!!)
-                        .switchIfEmpty(Mono.defer {
-                            createUserAndWallet(request.address, network)
-                        })
-                }
+            findOrCreateUserAndWallet(request)
                 .flatMap { wallet ->
                     updateWalletBalance(wallet, request.network)
-//                        .flatMap { updatedWallet ->
-//                        requestJwt(wallet.address).map { jwt ->
-//                            Pair(updatedWallet, jwt)
-//                        }
-//                    }
+                        .flatMap {
+                            getTokens(it)
+                        }
                 }
         } else {
-            Mono.error(IllegalArgumentException("유효하지 않는 지갑 주소"))
+            Mono.error(IllegalArgumentException("not valid Wallet Address"))
         }
+    }
+
+    fun getTokens(wallet: Wallet): Mono<SignInResponse> {
+       return authApiService.getJwtToken(wallet.address)
+            .map { jwt ->
+                SignInResponse(wallet,jwt)
+            }
+    }
+
+    fun findOrCreateUserAndWallet(request: ValidateRequest): Mono<Wallet> {
+        return networkService.findByType(request.network)
+            .flatMap { network ->
+                walletRepository.findByAddressAndNetworkType(request.address, network.type!!)
+                    .switchIfEmpty(Mono.defer {
+                        createUserAndWallet(request.address, network)
+                    })
+            }
     }
 
 
