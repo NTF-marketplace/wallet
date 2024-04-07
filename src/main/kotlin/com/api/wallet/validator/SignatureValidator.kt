@@ -8,6 +8,7 @@ import org.web3j.crypto.Sign
 import org.web3j.utils.Numeric
 import java.nio.charset.StandardCharsets
 
+
 @Component
 class SignatureValidator {
 
@@ -21,6 +22,7 @@ class SignatureValidator {
         val signatureData = Sign.SignatureData(signatureBytes[64], signatureBytes.sliceArray(0..31), signatureBytes.sliceArray(32..63))
 
         val publicKey = Sign.signedMessageHashToKey(msgHash, signatureData)
+
         val recoveredAddress = "0x${Keys.getAddress(publicKey)}"
         if(!recoveredAddress.equals(request.address, ignoreCase = true)) {
             return false

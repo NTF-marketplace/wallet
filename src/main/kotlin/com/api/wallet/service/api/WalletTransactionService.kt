@@ -4,9 +4,8 @@ import com.api.wallet.domain.transaction.Transaction
 import com.api.wallet.domain.transaction.repository.TransactionRepository
 import com.api.wallet.domain.wallet.Wallet
 import com.api.wallet.domain.wallet.repository.WalletRepository
-import com.api.wallet.enums.ChainType
 import com.api.wallet.enums.NetworkType
-import com.api.wallet.service.external.moralis.MoralisService
+import com.api.wallet.service.external.moralis.MoralisApiService
 import com.api.wallet.service.external.moralis.dto.response.TransferResult
 import com.api.wallet.util.Util.convertNetworkTypeToChainType
 import com.api.wallet.util.Util.toIsoString
@@ -21,7 +20,7 @@ import reactor.core.publisher.Mono
 
 @Service
 class WalletTransactionService(
-    private val moralisService: MoralisService,
+    private val moralisApiService: MoralisApiService,
     private val transactionRepository: TransactionRepository,
     private val walletRepository: WalletRepository,
     private val nftService: NftService,
@@ -49,7 +48,7 @@ class WalletTransactionService(
             .collectList()
             .flatMapMany {
                 val lastBlockTimestamp = it.firstOrNull()?.blockTimestamp?.plus(10000)
-                moralisService.getWalletNFTTransfers(
+                moralisApiService.getWalletNFTTransfers(
                     wallet.address,
                     wallet.networkType.convertNetworkTypeToChainType(),
                     lastBlockTimestamp?.toIsoString() ?: null,

@@ -1,23 +1,19 @@
 package com.api.wallet.service.external.auth
 
-import com.api.wallet.enums.ChainType
+import com.api.wallet.properties.api.AuthApiProperties
 import com.api.wallet.service.external.auth.dto.JwtRequest
 import com.api.wallet.service.external.auth.dto.JwtResponse
-import com.api.wallet.service.external.infura.InfuraApiService
-import com.api.wallet.service.external.infura.dto.request.InfuraRequest
-import com.api.wallet.service.external.infura.dto.response.InfuraResponse
-import com.api.wallet.service.external.infura.dto.response.InfuraResponse.Companion.toBigInteger
-import com.api.wallet.service.external.moralis.MoralisService
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
-import java.math.BigInteger
 
 @Service
-class AuthApiService {
+class AuthApiService(
+    authApiProperties: AuthApiProperties,
+) {
     private val webClient = WebClient.builder()
-        .baseUrl(baseUrl)
+        .baseUrl(authApiProperties.uri ?: throw IllegalAccessException("must be auth-url"))
         .build()
 
 

@@ -5,6 +5,6 @@ import reactor.core.publisher.Flux
 
 interface WalletNftRepositorySupport {
 
-    fun findByWalletIdJoinNft(address: String, networkType: String) : Flux<WalletNftWithNft>
+    fun findByWalletIdJoinNft(address: String, networkType: String) : Flux<WalletNftDto>
 
 }

@@ -19,3 +19,8 @@ logging:
     org.springframework.r2dbc: debug
     io.r2dbc.postgresql: DEBUG
     root: info
+
+auth:
+  uri: "http://localhost:8081/v1/auth"
+nft:
+  uri: "http://localhost:8082/v1/nft"

@@ -9,9 +9,6 @@ enum class ChainType{
         POLYGON_MUMBAI,
 }
 
-class Test {
-
-}
 enum class NetworkType{
         ETHEREUM,
         POLYGON,

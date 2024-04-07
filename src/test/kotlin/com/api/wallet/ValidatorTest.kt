@@ -11,7 +11,7 @@ import com.api.wallet.service.api.NftService
 import com.api.wallet.service.api.WalletService
 import com.api.wallet.service.api.WalletTransactionService
 import com.api.wallet.service.external.infura.InfuraApiService
-import com.api.wallet.service.external.moralis.MoralisService
+import com.api.wallet.service.external.moralis.MoralisApiService
 import com.api.wallet.util.Util.toIsoString
 import com.api.wallet.util.Util.toTimestamp
 import com.api.wallet.validator.SignatureValidator
@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
-import reactor.core.publisher.Flux
 import java.lang.System.currentTimeMillis
 
 
@@ -29,7 +28,7 @@ import java.lang.System.currentTimeMillis
 class ValidatorTest(
     @Autowired private val signatureValidator: SignatureValidator,
     @Autowired private val infuraApiService: InfuraApiService,
-    @Autowired private val moralisService: MoralisService,
+    @Autowired private val moralisApiService: MoralisApiService,
     @Autowired private val walletService: WalletService,
     @Autowired private val networkRepository: NetworkRepository,
     @Autowired private val userRepository: UserRepository,
@@ -87,7 +86,7 @@ class ValidatorTest(
     @Test
     fun getNftsByAddress() {
         val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
-        val res= moralisService.getNFTsByAddress(address,ChainType.POLYGON_MAINNET)
+        val res= moralisApiService.getNFTsByAddress(address,ChainType.POLYGON_MAINNET)
         println("response : " + res.block())
     }
 
@@ -96,7 +95,7 @@ class ValidatorTest(
         val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
         val toDate = currentTimeMillis().toIsoString()
         val fromDate = 1710852978000.toIsoString()
-        val res= moralisService.getWalletNFTTransfers(
+        val res= moralisApiService.getWalletNFTTransfers(
             address,
             chainType = ChainType.POLYGON_MAINNET,
             toDate =toDate,
@@ -143,14 +142,17 @@ class ValidatorTest(
     @Test
     fun readAllNfts() {
         val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
-        val pagebale = PageRequest.of(0,10)
+        val pagebale = PageRequest.of(0,13)
         val nftList= nftService.readAllNftByWallet(address,null,pagebale).block()
 
-            println("total element : "+nftList?.totalElements)
-            println("totalPages : " + nftList?.totalPages)
-        nftList?.content?.forEach {
-                println(it.nftId)
-            }
+        nftList?.content?.map {
+            println(it.tokenId)
+            println(it.nftName)
+            println(it.tokenAddress)
+            println(it.id)
+            println(it.collectionName)
+            println("------------------")
+        }
 
     }
 

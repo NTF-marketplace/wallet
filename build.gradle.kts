@@ -4,6 +4,7 @@ plugins {
     id("org.springframework.boot") version "3.2.3"
     id("io.spring.dependency-management") version "1.1.4"
     id("org.flywaydb.flyway") version "9.21.1"
+//    id("com.google.protobuf") version "0.9.4"
     kotlin("jvm") version "1.9.22"
     kotlin("plugin.spring") version "1.9.22"
 }
@@ -30,7 +31,6 @@ dependencies {
     implementation("org.postgresql:r2dbc-postgresql:1.0.4.RELEASE")
     implementation("org.postgresql:postgresql:42.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
-    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.16.0")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.16.0")
 
@@ -39,6 +39,11 @@ dependencies {
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.code.gson:gson:2.10.1")
+
+
+//    implementation("io.grpc:grpc-netty-shaded:1.36.1")
+//    implementation("io.grpc:grpc-protobuf:1.36.1")
+//    implementation("io.grpc:grpc-stub:1.36.1")
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -55,3 +60,4 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
