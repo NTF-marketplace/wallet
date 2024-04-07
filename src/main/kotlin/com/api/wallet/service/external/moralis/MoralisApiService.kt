@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono
 
 @Service
 //TODO("moralis apiKey properties에 저장 gitignore)
-class MoralisService {
+class MoralisApiService {
 
     private val webClient = WebClient.builder()
         .baseUrl(baseUrl)

@@ -8,7 +8,7 @@ class WalletNftRepositorySupportImpl(
 ): WalletNftRepositorySupport {
 
 
-    override fun findByWalletIdJoinNft(address: String, networkType: String): Flux<WalletNftWithNft> {
+    override fun findByWalletIdJoinNft(address: String, networkType: String): Flux<WalletNftDto> {
         val query = """
         SELECT 
             wn.id AS wn_id, 
@@ -25,10 +25,10 @@ class WalletNftRepositorySupportImpl(
         return r2dbcEntityTemplate.databaseClient.sql(query)
             .bind(0, address)
             .bind(1, networkType)
-            .map { row, metadata ->
-                WalletNftWithNft(
+            .map { row, data ->
+                WalletNftDto(
                     id = (row.get("wn_id") as Number).toLong(),
-                    walletId = (row.get("wallet_id") as Number).toLong(),
+                    walletId = (row.get("wallet_address") as Number).toLong(),
                     nftId = (row.get("nft_id") as Number).toLong(),
                     nftTokenAddress = row.get("nft_token_address", String::class.java)!!,
                     nftTokenId = row.get("nft_token_id", String::class.java)!!

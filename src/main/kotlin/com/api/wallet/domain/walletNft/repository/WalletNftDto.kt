@@ -1,7 +1,7 @@
 package com.api.wallet.domain.walletNft.repository
 
 
-data class WalletNftWithNft(
+data class WalletNftDto(
     val id: Long,
     val walletId: Long,
     val nftId: Long,
