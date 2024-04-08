@@ -54,11 +54,11 @@ class NftService(
             }
             .collectList()
             .flatMap {
-                pageableWalletNfts(it,pageable)
+                pageableNfts(it,pageable)
             }
     }
 
-    private fun pageableWalletNfts(walletNfts: List<WalletNft>, pageable: Pageable): Mono<Page<NftResponse>> {
+    private fun pageableNfts(walletNfts: List<WalletNft>, pageable: Pageable): Mono<Page<NftResponse>> {
         val start = pageable.offset.toInt()
         val end = (start + pageable.pageSize).coerceAtMost(walletNfts.size)
         val pageContent = if (start <= end) walletNfts.subList(start, end) else listOf()
@@ -71,7 +71,7 @@ class NftService(
         }
     }
 
-    private fun toBatchRequest(nfts: List<Nft>): List<NftBatchRequest> {
+    fun toBatchRequest(nfts: List<Nft>): List<NftBatchRequest> {
         return nfts.map { NftBatchRequest(it.tokenId, it.tokenAddress,it.networkType.convertNetworkTypeToChainType()) }
     }
 

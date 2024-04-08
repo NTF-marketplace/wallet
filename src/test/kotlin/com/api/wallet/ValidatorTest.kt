@@ -1,6 +1,7 @@
 package com.api.wallet
 
 import com.api.wallet.controller.dto.request.ValidateRequest
+import com.api.wallet.controller.dto.response.TransactionResponse
 import com.api.wallet.domain.network.repository.NetworkRepository
 import com.api.wallet.domain.transaction.Transaction
 import com.api.wallet.domain.user.repository.UserRepository
@@ -125,11 +126,14 @@ class ValidatorTest(
         val pagebale = PageRequest.of(0,20)
         val networkType = NetworkType.POLYGON
 
-        val transaction: Page<Transaction>? = walletTransactionService.readAllTransactions(address,networkType,pagebale).block()
+        val transaction: Page<TransactionResponse>? = walletTransactionService.readAllTransactions(address,networkType,pagebale).block()
             println("total element : "+transaction?.totalElements)
             println("totalPages : " + transaction?.totalPages)
         transaction?.content?.forEach {
-                println(it.nftId)
+            println(it.blockTimestamp)
+            println(it.nft.id)
+            println(it.nft.image)
+            println(it.nft.tokenAddress)
             }
     }
 
