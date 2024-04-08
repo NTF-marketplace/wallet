@@ -13,7 +13,7 @@ class Transaction(
     val amount: Int,
     val value: BigDecimal,
     val hash: String?,
-    val blockTimestamp: Long?,
-    val walletId: Long?, // 외래키
+    val blockTimestamp: Long,
+    val walletId: Long, // 외래키
 ){
 }
