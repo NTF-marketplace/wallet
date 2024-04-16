@@ -122,11 +122,14 @@ class ValidatorTest(
 
     @Test
     fun tansferasdas() {
+        val start = System.currentTimeMillis()
         val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
         val pagebale = PageRequest.of(0,20)
         val networkType = NetworkType.POLYGON
 
         val transaction: Page<TransactionResponse>? = walletTransactionService.readAllTransactions(address,networkType,pagebale).block()
+        val end = System.currentTimeMillis()
+        println("몇초 : " + end.minus(start))
             println("total element : "+transaction?.totalElements)
             println("totalPages : " + transaction?.totalPages)
         transaction?.content?.forEach {

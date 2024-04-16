@@ -67,6 +67,7 @@ class NftService(
         return nftRepository.findAllById(ids).collectList().flatMap { nfts->
             nftApiService.getNftBatch(toBatchRequest(nfts)).collectList()
         }.map { response ->
+            // TODO(nft update하고 반환?)
             PageImpl(response, pageable, response.size.toLong())
         }
     }

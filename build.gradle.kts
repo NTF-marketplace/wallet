@@ -40,10 +40,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.code.gson:gson:2.10.1")
 
-
-//    implementation("io.grpc:grpc-netty-shaded:1.36.1")
-//    implementation("io.grpc:grpc-protobuf:1.36.1")
-//    implementation("io.grpc:grpc-stub:1.36.1")
+    implementation("org.springframework.boot:spring-boot-starter-amqp")
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test")

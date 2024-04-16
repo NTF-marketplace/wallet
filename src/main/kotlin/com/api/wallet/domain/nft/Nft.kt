@@ -10,4 +10,5 @@ class Nft(
     val tokenAddress: String,
     val networkType: String,
 ) {
+    val originNftId: Long? = null
 }
