@@ -34,16 +34,14 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.16.0")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.16.0")
 
+    implementation("org.springframework.boot:spring-boot-starter-amqp")
+
     //web3j
     implementation("org.web3j:core:4.9.1")
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.code.gson:gson:2.10.1")
 
-
-//    implementation("io.grpc:grpc-netty-shaded:1.36.1")
-//    implementation("io.grpc:grpc-protobuf:1.36.1")
-//    implementation("io.grpc:grpc-stub:1.36.1")
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test")

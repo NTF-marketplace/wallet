@@ -9,11 +9,20 @@ spring:
     url: r2dbc:postgresql://localhost:5432/wallet
     username: wallet
     password: wallet
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: closeSea
+    password: closeSeaP@ssword
+#    template:
+#      exchange: "testExchange"
+#      routing-key: "testRoutingKey"
+
 #  sql:
 #    init:
 #      mode: always
 #      schema-locations: classpath*:db/postgresql/schema.sql
-
 logging:
   level:
     org.springframework.r2dbc: debug
