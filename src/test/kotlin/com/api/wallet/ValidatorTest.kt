@@ -1,28 +1,17 @@
 package com.api.wallet
 
+import com.api.wallet.controller.WalletController
 import com.api.wallet.controller.dto.request.ValidateRequest
-import com.api.wallet.controller.dto.response.TransactionResponse
-import com.api.wallet.domain.network.repository.NetworkRepository
-import com.api.wallet.domain.transaction.Transaction
-import com.api.wallet.domain.user.repository.UserRepository
-import com.api.wallet.domain.wallet.repository.WalletRepository
 import com.api.wallet.enums.ChainType
 import com.api.wallet.enums.NetworkType
 import com.api.wallet.service.api.NftService
 import com.api.wallet.service.api.WalletService
-import com.api.wallet.service.api.WalletTransactionService
 import com.api.wallet.service.external.infura.InfuraApiService
 import com.api.wallet.service.external.moralis.MoralisApiService
-import com.api.wallet.util.Util.toIsoString
-import com.api.wallet.util.Util.toTimestamp
 import com.api.wallet.validator.SignatureValidator
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageRequest
-import java.lang.System.currentTimeMillis
-
 
 @SpringBootTest
 //TODO("service 나눠서 작성")
@@ -31,11 +20,8 @@ class ValidatorTest(
     @Autowired private val infuraApiService: InfuraApiService,
     @Autowired private val moralisApiService: MoralisApiService,
     @Autowired private val walletService: WalletService,
-    @Autowired private val networkRepository: NetworkRepository,
-    @Autowired private val userRepository: UserRepository,
-    @Autowired private val walletRepository: WalletRepository,
-    @Autowired private val walletTransactionService: WalletTransactionService,
     @Autowired private val nftService: NftService,
+    @Autowired private val walletController: WalletController,
 ) {
 
     @Test
@@ -91,19 +77,19 @@ class ValidatorTest(
         println("response : " + res.block())
     }
 
-    @Test
-    fun getWalletNFTTransfers() {
-        val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
-        val toDate = currentTimeMillis().toIsoString()
-        val fromDate = 1710852978000.toIsoString()
-        val res= moralisApiService.getWalletNFTTransfers(
-            address,
-            chainType = ChainType.POLYGON_MAINNET,
-            toDate =toDate,
-            fromDate =fromDate
-        )
-        println("response : " + res.block())
-    }
+//    @Test
+//    fun getWalletNFTTransfers() {
+//        val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
+//        val toDate = currentTimeMillis().toIsoString()
+//        val fromDate = 1710852978000.toIsoString()
+//        val res= moralisApiService.getWalletNFTTransfers(
+//            address,
+//            chainType = ChainType.POLYGON_MAINNET,
+//            toDate =toDate,
+//            fromDate =fromDate
+//        )
+//        println("response : " + res.block())
+//    }
 
     @Test
     fun signin() {
@@ -121,44 +107,21 @@ class ValidatorTest(
     }
 
     @Test
-    fun tansferasdas() {
-        val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
-        val pagebale = PageRequest.of(0,20)
-        val networkType = NetworkType.POLYGON
-
-        val transaction: Page<TransactionResponse>? = walletTransactionService.readAllTransactions(address,networkType,pagebale).block()
-            println("total element : "+transaction?.totalElements)
-            println("totalPages : " + transaction?.totalPages)
-        transaction?.content?.forEach {
-            println(it.blockTimestamp)
-            println(it.nft.id)
-            println(it.nft.image)
-            println(it.nft.tokenAddress)
-            }
-    }
-
-    @Test
-    fun asd() {
-        val res = "2024-03-19T12:56:07Z".toTimestamp()
-        println(res)
-    }
-
-    @Test
     fun readAllNfts() {
         val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
-        val pagebale = PageRequest.of(0,13)
-        val nftList= nftService.readAllNftByWallet(address,null,pagebale).block()
+//        val nftList= nftService.readAllNftByWallet(address,null).blockLast()
 
-        nftList?.content?.map {
-            println(it.tokenId)
+        val response = walletController.readAllNftByWallet(null,address).block()
+
+        println("status : " + response?.statusCode)
+        response?.body?.map {
             println(it.nftName)
-            println(it.tokenAddress)
             println(it.id)
-            println(it.collectionName)
-            println("------------------")
+            println(it.tokenAddress)
         }
-
     }
+
+
 
 
 }

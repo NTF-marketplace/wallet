@@ -5,6 +5,7 @@ data class NftResponse(
     val tokenId: String,
     val tokenAddress: String,
     val chinType: String,
+    val contractType: String,
     val nftName: String,
     val collectionName: String,
     val image: String,

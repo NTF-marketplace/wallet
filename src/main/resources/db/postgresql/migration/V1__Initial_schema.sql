@@ -29,10 +29,11 @@ CREATE TABLE IF NOT EXISTS wallet (
     );
 
 CREATE TABLE IF NOT EXISTS nft (
-    id SERIAL PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     token_id VARCHAR(255) NOT NULL,
     token_address VARCHAR(255) NOT NULL,
-    network_type varchar(100) REFERENCES network(type)
+    network_type varchar(100) REFERENCES network(type),
+    contract_type VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS transaction (

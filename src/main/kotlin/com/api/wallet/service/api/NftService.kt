@@ -12,11 +12,7 @@ import com.api.wallet.service.external.moralis.MoralisApiService
 import com.api.wallet.service.external.moralis.dto.response.NFTResult
 import com.api.wallet.service.external.nft.NftApiService
 import com.api.wallet.service.external.nft.dto.NftResponse
-import com.api.wallet.service.external.nft.dto.NftBatchRequest
 import com.api.wallet.util.Util.convertNetworkTypeToChainType
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageImpl
-import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
@@ -31,51 +27,41 @@ class NftService(
     private val nftApiService: NftApiService,
 ) {
 
-    fun findOrCreateNft(tokenAddress: String,networkType: String,tokenId:String): Mono<Nft> {
+    fun findOrCreateNft(tokenAddress: String,
+                        networkType: String,
+                        tokenId:String,
+                        originId: Long,
+                        contractType: String
+    ): Mono<Nft> {
         return nftRepository.findByTokenAddressAndNetworkTypeAndTokenId(tokenAddress,networkType,tokenId)
             .switchIfEmpty(
                 nftRepository.insert(
                     Nft(
-                    tokenId = tokenId, tokenAddress = tokenAddress, networkType = networkType)
+                        id = originId,
+                        tokenId = tokenId,
+                        tokenAddress = tokenAddress,
+                        networkType = networkType,
+                        contractType = contractType
+                    )
                 )
             )
     }
 
     @Transactional
-    fun readAllNftByWallet(address: String, networkType:NetworkType?, pageable: Pageable): Mono<Page<NftResponse>> {
+    fun readAllNftByWallet(address: String, networkType:NetworkType?): Flux<NftResponse> {
         val wallets = if (networkType != null) {
             walletRepository.findByAddressAndNetworkType(address, networkType.toString()).flux()
         } else {
+            //TODO(address 없으면 에러처리하기,)
             walletRepository.findAllByAddress(address)
         }
         return wallets
             .flatMap { wallet ->
                 getNftByWallet(wallet)
             }
-            .collectList()
-            .flatMap {
-                pageableNfts(it,pageable)
-            }
     }
 
-    private fun pageableNfts(walletNfts: List<WalletNft>, pageable: Pageable): Mono<Page<NftResponse>> {
-        val start = pageable.offset.toInt()
-        val end = (start + pageable.pageSize).coerceAtMost(walletNfts.size)
-        val pageContent = if (start <= end) walletNfts.subList(start, end) else listOf()
-
-        val ids = pageContent.map { it.nftId }
-        return nftRepository.findAllById(ids).collectList().flatMap { nfts->
-            nftApiService.getNftBatch(toBatchRequest(nfts)).collectList()
-        }.map { response ->
-            PageImpl(response, pageable, response.size.toLong())
-        }
-    }
-
-    fun toBatchRequest(nfts: List<Nft>): List<NftBatchRequest> {
-        return nfts.map { NftBatchRequest(it.tokenId, it.tokenAddress,it.networkType.convertNetworkTypeToChainType()) }
-    }
-
-    private fun getNftByWallet(wallet: Wallet): Flux<WalletNft> {
+    private fun getNftByWallet(wallet: Wallet): Flux<NftResponse> {
         val response = moralisApiService.getNFTsByAddress(wallet.address, wallet.networkType.convertNetworkTypeToChainType())
         val getNftsByWallet = walletNftRepository.findByWalletIdJoinNft(wallet.address,wallet.networkType)
 
@@ -86,30 +72,44 @@ class NftService(
 
                 deleteToWalletNft(responseNfts, getNfts, wallet)
                     .thenMany(addToWalletNft(responseNfts, getNfts, wallet))
-                    .thenMany(walletNftRepository.findByWalletId(wallet.id!!))
+                    .thenMany(walletNftRepository.findByWalletId(wallet.id!!)
+                        .map{ it.nftId }.collectList()
+                        .flatMapMany { ids ->
+                            nftApiService.getNfts(ids) }
+
+                    )
+
+            }
+    }
+
+    private fun addToWalletNft(
+        responseNftsMap: Map<Pair<String, String>, NFTResult>,
+        getNftsMap: Map<Pair<String, String>, WalletNftDto>,
+        wallet: Wallet
+    ): Flux<WalletNft> {
+        val nftDataToSave = responseNftsMap.filterKeys { !getNftsMap.containsKey(it) }
+            .values.toList()
+
+        return nftApiService.saveNfts(nftDataToSave,wallet.networkType.convertNetworkTypeToChainType())
+            .collectList()
+            .flatMapMany {
+                Flux.fromIterable(it).flatMap { savedNft ->
+                    val originalNftData = responseNftsMap[Pair(savedNft.tokenAddress, savedNft.tokenId)]
+                    findOrCreateNft(savedNft.tokenAddress, wallet.networkType, savedNft.tokenId, savedNft.id,savedNft.contractType)
+                        .flatMap { nft ->
+                            walletNftRepository.save(
+                                WalletNft(
+                                    walletId = wallet.id!!,
+                                    nftId = nft.id!!,
+                                    amount = originalNftData?.amount?.toInt() ?: 0
+                                )
+                            )
+                        }
+                }
             }
     }
 
 
-    private fun addToWalletNft(
-        responseNftsMap: Map<Pair<String,String>, NFTResult>,
-        getNftsMap: Map<Pair<String,String>, WalletNftDto>,
-        wallet: Wallet,
-        ): Flux<WalletNft> {
-          return Flux.fromIterable(responseNftsMap.keys).filter{ !getNftsMap.containsKey(it) }
-                .flatMap {
-                    val data = responseNftsMap[Pair(it.first,it.second)]
-                    findOrCreateNft(data!!.tokenAddress,wallet.networkType,data!!.tokenId).flatMap { nft->
-                         walletNftRepository.save(
-                             WalletNft(
-                                 walletId = wallet.id!!,
-                                 nftId = nft.id!!,
-                                 amount = data.amount!!.toInt()
-                             )
-                         )
-                     }
-                }
-        }
 
     private fun deleteToWalletNft(
         responseNftsMap: Map<Pair<String,String>, NFTResult>,

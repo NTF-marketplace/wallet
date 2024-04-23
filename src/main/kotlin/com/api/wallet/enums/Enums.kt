@@ -14,3 +14,8 @@ enum class NetworkType{
         POLYGON,
 }
 
+enum class ContractType{
+        ERC1155,
+        ERC721
+}
+

@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 
@@ -24,32 +25,22 @@ class WalletController(
     private val nftService: NftService,
 ) {
 
+    // response 공용화
     @GetMapping("/nft")
     fun readAllNftByWallet(
-        @RequestParam networkType: NetworkType,
-        @RequestParam walletAddress: String, // 토큰에서 식별자가져오기
-        pageable: Pageable,
-        ): Mono<ResponseEntity<Page<NftResponse>>> {
-        return nftService.readAllNftByWallet(walletAddress,networkType,pageable)
-            .flatMap { response ->
-                Mono.just(ResponseEntity.ok().body(response))
-            }.onErrorResume {
-                Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null))
+        @RequestParam networkType: NetworkType?,
+        @RequestParam walletAddress: String
+    ): Mono<ResponseEntity<List<NftResponse>>> {
+        return nftService.readAllNftByWallet(walletAddress, networkType)
+            .collectList()
+            .map { ResponseEntity.ok(it) }
+            .defaultIfEmpty(ResponseEntity.notFound().build())
+            .onErrorResume { e ->
+                Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build())
             }
     }
 
-    @GetMapping("/transaction")
-    fun readAllTransactions(
-        @RequestParam networkType: NetworkType,
-        @RequestParam walletAddress: String, //토큰에서 식별자가져오기
-        pageable: Pageable,
-    ): Mono<ResponseEntity<Page<TransactionResponse>>> {
-        return walletTransactionService.readAllTransactions(walletAddress,networkType,pageable)
-            .flatMap { response ->
-                Mono.just(ResponseEntity.ok().body(response))
-            }.onErrorResume {
-                Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null))
-            }
-    }
+
+
 
 }

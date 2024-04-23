@@ -1,5 +1,6 @@
 package com.api.wallet.service.external.moralis.dto.response
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -34,29 +35,40 @@ data class NFTResult(
     @JsonProperty("collection_logo") val collectionLogo: String?,
     @JsonProperty("collection_banner_image") val collectionBannerImage: String?,
     @JsonProperty("minter_address") val minterAddress: String?
-) {
-    fun NFTResult.parseMetadata() : NFTMetadata? {
-        return metadata?.let {
-            jacksonObjectMapper().readValue<NFTMetadata>(it)
-        }
-    }
-}
-
-data class NFTMetadata(
-    val name: String?,
-    val description: String?,
-    val image: String?,
-    @JsonProperty("animation_url") val animationUrl: String?,
-    @JsonProperty val attributes: List<NFTAttribute>?
-) {
-    fun String.parseImage() : String? {
-        return image?.let {
-            it.replace("ipfs://", "https://ipfs.io/ipfs/")
-        }
-    }
-}
-
-data class NFTAttribute(
-    @JsonProperty("trait_type") val traitType: String,
-    @JsonProperty val value: String
 )
+
+data class NftMetadata(
+    val name: String,
+    val description: String,
+    val image: String,
+    @JsonProperty("animation_url") val animationUrl: String?,
+    val attributes: List<Map<String, String>>,
+    @JsonIgnoreProperties(ignoreUnknown = true) @JsonProperty("external_url") val externalUrl: String? = null
+){
+    companion object {
+        fun toMetadataResponse(metadata: String): NftMetadata {
+            val mapper = jacksonObjectMapper()
+            return mapper.readValue(metadata, NftMetadata::class.java)
+        }
+
+        fun parseImage(image: String) : String {
+            return image.replace("ipfs://", "https://ipfs.io/ipfs/")
+        }
+    }
+}
+
+data class NftAttribute(
+    @JsonProperty("trait_type") val traitType: String?,
+    val value: String?
+) {
+    companion object {
+        fun toAttributeResponse(attributes: List<Map<String, String>>): List<NftAttribute> {
+            return attributes.map {
+                NftAttribute(
+                    traitType = it["trait_type"],
+                    value = it["value"]
+                )
+            }
+        }
+    }
+}
