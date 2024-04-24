@@ -6,12 +6,15 @@ import com.api.wallet.enums.ChainType
 import com.api.wallet.enums.NetworkType
 import com.api.wallet.service.api.NftService
 import com.api.wallet.service.api.WalletService
+import com.api.wallet.service.api.WalletTransactionService
 import com.api.wallet.service.external.infura.InfuraApiService
 import com.api.wallet.service.external.moralis.MoralisApiService
 import com.api.wallet.validator.SignatureValidator
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.web3j.utils.Numeric
+import java.math.BigInteger
 
 @SpringBootTest
 //TODO("service 나눠서 작성")
@@ -22,6 +25,7 @@ class ValidatorTest(
     @Autowired private val walletService: WalletService,
     @Autowired private val nftService: NftService,
     @Autowired private val walletController: WalletController,
+    @Autowired private val walletTransactionService: WalletTransactionService,
 ) {
 
     @Test
@@ -121,6 +125,36 @@ class ValidatorTest(
         }
     }
 
+
+    @Test
+    fun getTransactionTest() {
+       //walletTransactionService.getTransactionERC721("0xBd3531dA5CF5857e7CfAA92426877b022e612cf8","151")
+
+        walletTransactionService.getTransactionERC1155("0x495f947276749Ce646f68AC8c248420045cb7b5e","72639390708267126639436568569652760193401123475841185469851730231265004093441")
+        // val tokenId = "151"
+        // val tokenIdBI = Numeric.toBigInt(tokenId)
+        // val topicTokenId = Numeric.toHexStringWithPrefixZeroPadded(tokenIdBI, 64)
+        // println("Converted tokenId: $topicTokenId")
+        // walletTransactionService.fetchLogsFromInfura()
+    }
+
+    @Test
+    fun hex16() {
+        val tokenId = "151"
+        val res = Numeric.toHexStringWithPrefixZeroPadded(BigInteger(tokenId), 64)
+
+
+        println(res)
+        var i = 0;
+        res.map {
+            i++
+        }
+
+        println(i)
+
+
+
+    }
 
 
 
