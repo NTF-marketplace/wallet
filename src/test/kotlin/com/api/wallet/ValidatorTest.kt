@@ -12,6 +12,8 @@ import com.api.wallet.validator.SignatureValidator
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.web3j.utils.Numeric
+import java.math.BigInteger
 
 @SpringBootTest
 //TODO("service 나눠서 작성")
@@ -121,6 +123,24 @@ class ValidatorTest(
         }
     }
 
+
+    @Test
+    fun hex16() {
+        val tokenId = "151"
+        val res = Numeric.toHexStringWithPrefixZeroPadded(BigInteger(tokenId), 64)
+
+
+        println(res)
+        var i = 0;
+        res.map {
+            i++
+        }
+
+        println(i)
+
+
+
+    }
 
 
 
