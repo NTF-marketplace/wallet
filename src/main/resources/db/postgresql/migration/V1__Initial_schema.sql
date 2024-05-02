@@ -4,9 +4,6 @@ CREATE TABLE IF NOT EXISTS users (
     );
 
 
--- CREATE TYPE network_type AS ENUM ('ETHEREUM', 'POLYGON');
-
-
 CREATE TABLE IF NOT EXISTS network (
 --     id SERIAL PRIMARY KEY,
     type varchar(100) PRIMARY KEY
@@ -34,18 +31,6 @@ CREATE TABLE IF NOT EXISTS nft (
     token_address VARCHAR(255) NOT NULL,
     network_type varchar(100) REFERENCES network(type),
     contract_type VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS transaction (
-    id SERIAL PRIMARY KEY,
-    nft_id BIGINT REFERENCES nft(id),
-    to_address VARCHAR(255) NOT NULL,
-    from_address VARCHAR(255) NOT NULL,
-    amount INT,
-    value NUMERIC,
-    hash VARCHAR(255),
-    block_timestamp BIGINT,
-    wallet_id BIGINT REFERENCES wallet(id)
 );
 
 CREATE TABLE IF NOT EXISTS wallet_nft (
