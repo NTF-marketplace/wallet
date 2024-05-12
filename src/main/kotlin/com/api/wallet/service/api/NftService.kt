@@ -52,7 +52,6 @@ class NftService(
         val wallets = if (networkType != null) {
             walletRepository.findByAddressAndNetworkType(address, networkType.toString()).flux()
         } else {
-            //TODO(address 없으면 에러처리하기,)
             walletRepository.findAllByAddress(address)
         }
         return wallets
@@ -67,7 +66,10 @@ class NftService(
 
         return Mono.zip(response, getNftsByWallet.collectList())
             .flatMapMany { tuple ->
-                val responseNfts = tuple.t1.result.associateBy { Pair(it.tokenAddress,it.tokenId) }
+                val responseNfts = tuple.t1.result
+                    .filter { it.contractType == "ERC721" }
+                    .associateBy { Pair(it.tokenAddress, it.tokenId) }
+
                 val getNfts = tuple.t2.associateBy { Pair(it.nftTokenAddress,it.nftTokenId) }
 
                 deleteToWalletNft(responseNfts, getNfts, wallet)
@@ -100,7 +102,7 @@ class NftService(
                             walletNftRepository.save(
                                 WalletNft(
                                     walletId = wallet.id!!,
-                                    nftId = nft.id!!,
+                                    nftId = nft.id,
                                     amount = originalNftData?.amount?.toInt() ?: 0
                                 )
                             )
