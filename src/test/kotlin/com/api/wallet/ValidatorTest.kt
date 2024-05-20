@@ -4,6 +4,8 @@ import com.api.wallet.controller.WalletController
 import com.api.wallet.controller.dto.request.ValidateRequest
 import com.api.wallet.enums.ChainType
 import com.api.wallet.enums.NetworkType
+import com.api.wallet.rabbitMQ.dto.AdminTransferResponse
+import com.api.wallet.service.api.AccountService
 import com.api.wallet.service.api.NftService
 import com.api.wallet.service.api.WalletService
 import com.api.wallet.service.external.infura.InfuraApiService
@@ -12,8 +14,6 @@ import com.api.wallet.validator.SignatureValidator
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.web3j.utils.Numeric
-import java.math.BigInteger
 
 @SpringBootTest
 //TODO("service 나눠서 작성")
@@ -24,6 +24,7 @@ class ValidatorTest(
     @Autowired private val walletService: WalletService,
     @Autowired private val nftService: NftService,
     @Autowired private val walletController: WalletController,
+    @Autowired private val accountService: AccountService,
 ) {
 
     @Test
@@ -125,23 +126,18 @@ class ValidatorTest(
 
 
     @Test
-    fun hex16() {
-        val tokenId = "151"
-        val res = Numeric.toHexStringWithPrefixZeroPadded(BigInteger(tokenId), 64)
+    fun saveAccountNfts() {
+        val response = AdminTransferResponse(
+            id = 4L,
+            walletAddress = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
+            nftId = 4L,
+            timestamp = 1716192591L,
+            accountType = "DEPOSIT"
+        )
 
-
-        println(res)
-        var i = 0;
-        res.map {
-            i++
-        }
-
-        println(i)
-
-
-
+        accountService.saveAccountNfts(response).block()
+        Thread.sleep(10000)
     }
-
 
 
 }

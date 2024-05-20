@@ -75,10 +75,13 @@ class NftService(
                 deleteToWalletNft(responseNfts, getNfts, wallet)
                     .thenMany(addToWalletNft(responseNfts, getNfts, wallet))
                     .thenMany(walletNftRepository.findByWalletId(wallet.id!!)
-                        .map{ it.nftId }.collectList()
+                        .map{ it.nftId }
+                        .collectList()
+                        .filterWhen { ids -> Mono.just(ids.isNotEmpty()) }
                         .flatMapMany { ids ->
-                            nftApiService.getNfts(ids) }
-
+                            nftApiService.getNfts(ids)
+                        }
+                        .switchIfEmpty(Flux.empty())
                     )
 
             }
@@ -97,7 +100,7 @@ class NftService(
             .flatMapMany {
                 Flux.fromIterable(it).flatMap { savedNft ->
                     val originalNftData = responseNftsMap[Pair(savedNft.tokenAddress, savedNft.tokenId)]
-                    findOrCreateNft(savedNft.tokenAddress, wallet.networkType, savedNft.tokenId, savedNft.id,savedNft.contractType)
+                    findOrCreateNft(savedNft.tokenAddress, wallet.networkType, savedNft.tokenId, savedNft.id, savedNft.contractType)
                         .flatMap { nft ->
                             walletNftRepository.save(
                                 WalletNft(

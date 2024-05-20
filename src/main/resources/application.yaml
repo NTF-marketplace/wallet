@@ -1,3 +1,4 @@
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/wallet
@@ -33,3 +34,5 @@ auth:
   uri: "http://localhost:8081/v1/auth"
 nft:
   uri: "http://localhost:8082/v1/nft"
+server:
+  port: 8083

@@ -49,7 +49,7 @@ class InfuraApiService {
 
         return webClient.post()
             .uri("/v3/$apiKey")
-            .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(requestBody)
             .retrieve()
             .bodyToMono(InfuraResponse::class.java)
