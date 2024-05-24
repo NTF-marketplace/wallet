@@ -16,6 +16,7 @@ class WalletController(
 ) {
 
     // response 공용화
+    //  api 게이트웨이에서 헤더전파
     @GetMapping("/nft")
     fun readAllNftByWallet(
         @RequestParam networkType: NetworkType?,
@@ -25,12 +26,9 @@ class WalletController(
             .collectList()
             .map { ResponseEntity.ok(it) }
             .defaultIfEmpty(ResponseEntity.notFound().build())
-            .onErrorResume { e ->
+            .onErrorResume {
                 Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build())
             }
     }
-
-
-
 
 }

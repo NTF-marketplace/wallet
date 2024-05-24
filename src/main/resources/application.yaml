@@ -1,3 +1,4 @@
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/wallet
@@ -15,9 +16,6 @@ spring:
     port: 5672
     username: closeSea
     password: closeSeaP@ssword
-#    template:
-#      exchange: "testExchange"
-#      routing-key: "testRoutingKey"
 
 #  sql:
 #    init:
@@ -26,10 +24,12 @@ spring:
 logging:
   level:
     org.springframework.r2dbc: debug
-#    io.r2dbc.postgresql: DEBUG
+    io.r2dbc.postgresql: DEBUG
 #    root: info
 
 auth:
   uri: "http://localhost:8081/v1/auth"
 nft:
   uri: "http://localhost:8082/v1/nft"
+server:
+  port: 8083

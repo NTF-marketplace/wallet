@@ -61,8 +61,6 @@ class WalletService(
                     })
             }
     }
-
-
     private fun createUserAndWallet(address: String, network: Network): Mono<Wallet> {
         return userRepository.save(Users(nickName = "Unknown"))
                 .flatMap { user ->

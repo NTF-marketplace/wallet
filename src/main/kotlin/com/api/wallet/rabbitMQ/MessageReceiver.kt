@@ -1,13 +1,19 @@
 package com.api.wallet.rabbitMQ
 
+import com.api.wallet.rabbitMQ.dto.AdminTransferResponse
+import com.api.wallet.service.api.AccountService
 import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.stereotype.Service
 
 @Service
-class MessageReceiver {
-
-    @RabbitListener(queues = ["nftQueue"])
-    fun receiveMessage(nftId: Long) {
-        println("Received Message: $nftId")
+class MessageReceiver(
+    private val accountService: AccountService,
+) {
+    @RabbitListener(queues = ["transferQueue"])
+    fun depositMessage(transfer: AdminTransferResponse) {
+        accountService.saveAccount(transfer)
+            .doOnSuccess { println("Account successfully saved") }
+            .doOnError { error -> println("Error occurred: ${error.message}") }
+            .subscribe()
     }
 }
