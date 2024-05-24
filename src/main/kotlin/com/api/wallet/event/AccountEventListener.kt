@@ -11,13 +11,29 @@ class AccountEventListener(
     private val accountLogRepository: AccountLogRepository,
 ) {
     @EventListener
-    fun handleAccountCreatedEvent(evnet: AccountCreatedEvent): Mono<Void> {
+    fun handleAccountEvent(evnet: AccountEvent): Mono<Void> {
         val accountLog = AccountLog(
             id = null,
-            userId = evnet.account.userId,
-            nftId = evnet.account.nftId,
+            accountId = evnet.account.id!!,
+            nftId = null,
             accountType = evnet.accountType,
-            timestamp = evnet.timestamp
+            timestamp = evnet.timestamp,
+            balance = evnet.account.balance,
+            transferType = "ERC20"
+        )
+        return accountLogRepository.save(accountLog).then()
+    }
+
+    @EventListener
+    fun handleAccountNftEvent(evnet: AccountNftEvent): Mono<Void> {
+        val accountLog = AccountLog(
+            id = null,
+            accountId = evnet.accountNft.accountId,
+            nftId = evnet.accountNft.nftId,
+            accountType = evnet.accountType,
+            timestamp = evnet.timestamp,
+            balance = null,
+            transferType = "ERC721"
         )
         return accountLogRepository.save(accountLog).then()
     }

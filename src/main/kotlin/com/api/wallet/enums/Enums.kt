@@ -9,6 +9,7 @@ enum class ChainType{
         POLYGON_MUMBAI,
 }
 
+// ChainType과 NetwordType 통일하기,
 enum class NetworkType{
         ETHEREUM,
         POLYGON,
@@ -22,3 +23,6 @@ enum class ContractType{
 enum class StatusType { ACTIVE, DEACTIVE }
 enum class AccountType{ DEPOSIT, WITHDRAW }
 
+enum class TransferType {
+        ERC20,ERC721
+}

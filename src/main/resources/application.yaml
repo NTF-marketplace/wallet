@@ -16,9 +16,6 @@ spring:
     port: 5672
     username: closeSea
     password: closeSeaP@ssword
-#    template:
-#      exchange: "testExchange"
-#      routing-key: "testRoutingKey"
 
 #  sql:
 #    init:
@@ -27,7 +24,7 @@ spring:
 logging:
   level:
     org.springframework.r2dbc: debug
-#    io.r2dbc.postgresql: DEBUG
+    io.r2dbc.postgresql: DEBUG
 #    root: info
 
 auth:

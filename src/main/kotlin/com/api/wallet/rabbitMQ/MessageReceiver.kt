@@ -11,6 +11,9 @@ class MessageReceiver(
 ) {
     @RabbitListener(queues = ["transferQueue"])
     fun depositMessage(transfer: AdminTransferResponse) {
-        accountService.saveAccountNfts(transfer)
+        accountService.saveAccount(transfer)
+            .doOnSuccess { println("Account successfully saved") }
+            .doOnError { error -> println("Error occurred: ${error.message}") }
+            .subscribe()
     }
 }

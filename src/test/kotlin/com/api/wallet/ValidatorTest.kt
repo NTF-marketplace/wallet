@@ -2,8 +2,11 @@ package com.api.wallet
 
 import com.api.wallet.controller.WalletController
 import com.api.wallet.controller.dto.request.ValidateRequest
+import com.api.wallet.domain.wallet.repository.WalletRepository
+import com.api.wallet.enums.AccountType
 import com.api.wallet.enums.ChainType
 import com.api.wallet.enums.NetworkType
+import com.api.wallet.enums.TransferType
 import com.api.wallet.rabbitMQ.dto.AdminTransferResponse
 import com.api.wallet.service.api.AccountService
 import com.api.wallet.service.api.NftService
@@ -11,9 +14,11 @@ import com.api.wallet.service.api.WalletService
 import com.api.wallet.service.external.infura.InfuraApiService
 import com.api.wallet.service.external.moralis.MoralisApiService
 import com.api.wallet.validator.SignatureValidator
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import java.time.Instant
 
 @SpringBootTest
 //TODO("service 나눠서 작성")
@@ -25,6 +30,7 @@ class ValidatorTest(
     @Autowired private val nftService: NftService,
     @Autowired private val walletController: WalletController,
     @Autowired private val accountService: AccountService,
+    @Autowired private val walletRepository: WalletRepository,
 ) {
 
     @Test
@@ -125,18 +131,40 @@ class ValidatorTest(
     }
 
 
-    @Test
-    fun saveAccountNfts() {
-        val response = AdminTransferResponse(
-            id = 4L,
-            walletAddress = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
-            nftId = 4L,
-            timestamp = 1716192591L,
-            accountType = "DEPOSIT"
-        )
+    // @Test
+    // fun saveAccountNfts() {
+    //     val response = AdminTransferResponse(
+    //         id = 4L,
+    //         walletAddress = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
+    //         nftId = 4L,
+    //         timestamp = 1716192591L,
+    //         accountType = "DEPOSIT"
+    //     )
+    //
+    //     accountService.saveAccountNfts(response).block()
+    //     Thread.sleep(10000)
+    // }
 
-        accountService.saveAccountNfts(response).block()
-        Thread.sleep(10000)
+    @Test
+    fun testFindWalletByAddress() {
+        val walletAddress = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
+        val wallet = walletRepository.findAllByAddress(walletAddress).next().block()
+        assertNotNull(wallet)
+        println("Wallet found: ${wallet?.address}")
+    }
+
+    @Test
+    fun test2() {
+        val response = AdminTransferResponse(
+            id= 1L,
+            walletAddress = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
+            nftId = 1L,
+            timestamp =  Instant.now().toEpochMilli(),
+            accountType = AccountType.DEPOSIT.toString(),
+            transferType = TransferType.ERC721.toString(),
+            balance = null
+        )
+        accountService.saveAccount(response).block()
     }
 
 
