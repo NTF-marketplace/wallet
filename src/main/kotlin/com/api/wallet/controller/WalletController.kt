@@ -1,6 +1,6 @@
 package com.api.wallet.controller
 
-import com.api.wallet.enums.NetworkType
+import com.api.wallet.enums.ChainType
 import com.api.wallet.service.api.NftService
 import com.api.wallet.service.external.nft.dto.NftResponse
 import org.springframework.http.HttpStatus
@@ -19,10 +19,10 @@ class WalletController(
     //  api 게이트웨이에서 헤더전파
     @GetMapping("/nft")
     fun readAllNftByWallet(
-        @RequestParam networkType: NetworkType?,
+        @RequestParam(required = false) chainType: ChainType?,
         @RequestParam walletAddress: String
     ): Mono<ResponseEntity<List<NftResponse>>> {
-        return nftService.readAllNftByWallet(walletAddress, networkType)
+        return nftService.readAllNftByWallet(walletAddress, chainType)
             .collectList()
             .map { ResponseEntity.ok(it) }
             .defaultIfEmpty(ResponseEntity.notFound().build())

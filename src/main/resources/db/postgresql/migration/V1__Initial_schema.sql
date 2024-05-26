@@ -1,13 +1,42 @@
+CREATE TYPE  chain_type AS ENUM (
+    'ETHEREUM_MAINNET',
+    'LINEA_MAINNET',
+    'LINEA_SEPOLIA',
+    'POLYGON_MAINNET',
+    'ETHEREUM_HOLESKY',
+    'ETHEREUM_SEPOLIA',
+    'POLYGON_AMOY'
+    );
+
+CREATE TYPE account_type AS ENUM(
+    'DEPOSIT',
+    'WITHDRAW'
+    );
+
+CREATE TYPE transfer_type AS ENUM(
+    'ERC20',
+    'ERC721'
+    );
+
+CREATE TYPE my_enum AS ENUM(
+    'ORANGE', 'APPLE'
+    );
+
+CREATE TABLE IF NOT EXISTS test (
+    id SERIAL PRIMARY KEY,
+    type my_enum not null
+);
+
+
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     nick_name VARCHAR(255) NOT NULL
     );
 
-
-CREATE TABLE IF NOT EXISTS network (
---     id SERIAL PRIMARY KEY,
-    type varchar(100) PRIMARY KEY
-);
+-- CREATE TABLE IF NOT EXISTS chain (
+-- --     id SERIAL PRIMARY KEY,
+--     type chain_type PRIMARY KEY
+-- );
 
 CREATE TABLE IF NOT EXISTS wallet (
     id SERIAL PRIMARY KEY,
@@ -16,20 +45,17 @@ CREATE TABLE IF NOT EXISTS wallet (
     created_At BIGINT,
     updated_At BIGINT,
     user_id BIGINT NOT NULL,
-    network_type varchar(100)  NOT NULL,
+    chain_type chain_type,
     CONSTRAINT fk_users
     FOREIGN KEY (user_id)
-    REFERENCES users(id),
-    CONSTRAINT fk_network
-    FOREIGN KEY (network_type)
-    REFERENCES network(type)
+    REFERENCES users(id)
     );
 
 CREATE TABLE IF NOT EXISTS nft (
     id BIGINT PRIMARY KEY,
     token_id VARCHAR(255) NOT NULL,
     token_address VARCHAR(255) NOT NULL,
-    network_type varchar(100) REFERENCES network(type),
+    chain_type chain_type,
     contract_type VARCHAR(255) NOT NULL
 );
 
@@ -57,8 +83,8 @@ CREATE TABLE IF NOT EXISTS account_log (
     account_id BIGINT REFERENCES account(id),
     nft_id BIGINT REFERENCES nft(id),
     timestamp BIGINT not null,
-    account_type varchar(100) not null,
-    transfer_type varchar(100) not null,
+    account_type account_type not null,
+    transfer_type transfer_type not null,
     balance DECIMAL(19, 4)
 );
 

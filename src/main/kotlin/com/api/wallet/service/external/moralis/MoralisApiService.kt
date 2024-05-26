@@ -20,9 +20,11 @@ class MoralisApiService {
         val chain = when (chain) {
             ChainType.ETHEREUM_MAINNET -> "eth"
             ChainType.POLYGON_MAINNET -> "polygon"
-            ChainType.ETHREUM_GOERLI -> "goerli"
-            ChainType.POLYGON_MUMBAI -> "munbai"
-            ChainType.ETHREUM_SEPOLIA -> "sepolia"
+            ChainType.LINEA_MAINNET -> "goerli"
+            ChainType.LINEA_SEPOLIA -> "munbai"
+            ChainType.ETHEREUM_HOLESKY -> "sepolia"
+            ChainType.ETHEREUM_SEPOLIA -> "sepolia"
+            ChainType.POLYGON_AMOY -> "amoy"
         }
         return chain
     }

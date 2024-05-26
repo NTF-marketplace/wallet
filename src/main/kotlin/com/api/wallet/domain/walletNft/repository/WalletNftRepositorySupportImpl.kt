@@ -1,5 +1,6 @@
 package com.api.wallet.domain.walletNft.repository
 
+import com.api.wallet.enums.ChainType
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import reactor.core.publisher.Flux
 
@@ -8,7 +9,7 @@ class WalletNftRepositorySupportImpl(
 ): WalletNftRepositorySupport {
 
 
-    override fun findByWalletIdJoinNft(address: String, networkType: String): Flux<WalletNftDto> {
+    override fun findByWalletIdJoinNft(address: String, chainType: ChainType): Flux<WalletNftDto> {
         val query = """
         SELECT 
             wn.id AS wn_id, 
@@ -19,12 +20,12 @@ class WalletNftRepositorySupportImpl(
         FROM wallet_nft wn 
         JOIN wallet w ON wn.wallet_id = w.id 
         JOIN nft n ON wn.nft_id = n.id 
-        WHERE w.address = $1 AND w.network_type = $2
+        WHERE w.address = $1 AND w.chain_type = $2
     """
 
         return r2dbcEntityTemplate.databaseClient.sql(query)
             .bind(0, address)
-            .bind(1, networkType)
+            .bind(1, chainType)
             .map { row, data ->
                 WalletNftDto(
                     id = (row.get("wn_id") as Number).toLong(),

@@ -1,7 +1,6 @@
 package com.api.wallet.service.external.nft
 
 import com.api.wallet.enums.ChainType
-import com.api.wallet.enums.NetworkType
 import com.api.wallet.properties.api.NftApiProperties
 import com.api.wallet.service.external.moralis.dto.response.NFTResult
 import com.api.wallet.service.external.nft.dto.NftResponse

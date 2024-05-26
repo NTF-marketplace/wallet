@@ -7,7 +7,7 @@ import com.api.wallet.domain.wallet.repository.WalletRepository
 import com.api.wallet.domain.walletNft.WalletNft
 import com.api.wallet.domain.walletNft.repository.WalletNftDto
 import com.api.wallet.domain.walletNft.repository.WalletNftRepository
-import com.api.wallet.enums.NetworkType
+import com.api.wallet.enums.ChainType
 import com.api.wallet.service.external.moralis.MoralisApiService
 import com.api.wallet.service.external.moralis.dto.response.NFTResult
 import com.api.wallet.service.external.nft.NftApiService
@@ -28,19 +28,19 @@ class NftService(
 ) {
 
     fun findOrCreateNft(tokenAddress: String,
-                        networkType: String,
+                        chainType: ChainType,
                         tokenId:String,
                         originId: Long,
                         contractType: String
     ): Mono<Nft> {
-        return nftRepository.findByTokenAddressAndNetworkTypeAndTokenId(tokenAddress,networkType,tokenId)
+        return nftRepository.findByTokenAddressAndChainTypeAndTokenId(tokenAddress,chainType,tokenId)
             .switchIfEmpty(
                 nftRepository.insert(
                     Nft(
                         id = originId,
                         tokenId = tokenId,
                         tokenAddress = tokenAddress,
-                        networkType = networkType,
+                        chainType = chainType,
                         contractType = contractType
                     )
                 )
@@ -48,9 +48,9 @@ class NftService(
     }
 
     @Transactional
-    fun readAllNftByWallet(address: String, networkType:NetworkType?): Flux<NftResponse> {
-        val wallets = if (networkType != null) {
-            walletRepository.findByAddressAndNetworkType(address, networkType.toString()).flux()
+    fun readAllNftByWallet(address: String, chainType:ChainType?): Flux<NftResponse> {
+        val wallets = if (chainType != null) {
+            walletRepository.findByAddressAndChainType(address, chainType).flux()
         } else {
             walletRepository.findAllByAddress(address)
         }
@@ -61,8 +61,8 @@ class NftService(
     }
 
     private fun getNftByWallet(wallet: Wallet): Flux<NftResponse> {
-        val response = moralisApiService.getNFTsByAddress(wallet.address, wallet.networkType.convertNetworkTypeToChainType())
-        val getNftsByWallet = walletNftRepository.findByWalletIdJoinNft(wallet.address,wallet.networkType)
+        val response = moralisApiService.getNFTsByAddress(wallet.address, wallet.chainType)
+        val getNftsByWallet = walletNftRepository.findByWalletIdJoinNft(wallet.address,wallet.chainType)
 
         return Mono.zip(response, getNftsByWallet.collectList())
             .flatMapMany { tuple ->
@@ -95,12 +95,12 @@ class NftService(
         val nftDataToSave = responseNftsMap.filterKeys { !getNftsMap.containsKey(it) }
             .values.toList()
 
-        return nftApiService.saveNfts(nftDataToSave,wallet.networkType.convertNetworkTypeToChainType())
+        return nftApiService.saveNfts(nftDataToSave,wallet.chainType)
             .collectList()
             .flatMapMany {
                 Flux.fromIterable(it).flatMap { savedNft ->
                     val originalNftData = responseNftsMap[Pair(savedNft.tokenAddress, savedNft.tokenId)]
-                    findOrCreateNft(savedNft.tokenAddress, wallet.networkType, savedNft.tokenId, savedNft.id, savedNft.contractType)
+                    findOrCreateNft(savedNft.tokenAddress, wallet.chainType, savedNft.tokenId, savedNft.id, savedNft.contractType)
                         .flatMap { nft ->
                             walletNftRepository.save(
                                 WalletNft(

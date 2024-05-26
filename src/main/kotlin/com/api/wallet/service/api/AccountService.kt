@@ -37,50 +37,6 @@ class AccountService(
         }
     }
 
-    // fun readAllAccountLog(
-    //     address: String,
-    //     accountType: AccountType?,
-    //     pageable: Pageable
-    // ): Flux<AccountLogResponse> {
-    //     return walletRepository.findAllByAddress(address)
-    //         .next()
-    //         .flatMapMany { wallet ->
-    //             getAllAccountLogsBy(wallet.userId,accountType,pageable)
-    //         }
-    //         .collectList()
-    //         .filterWhen {  Mono.just(it.isNotEmpty()) }
-    //         .flatMapMany { accountLogs->
-    //             val nftIds = accountLogs.map { it.nftId }
-    //             nftApiService.getNfts(nftIds)
-    //                 .collectList()
-    //                 .flatMapMany {nftResponses ->
-    //                     Flux.fromIterable(mapToAccountLogResponses(accountLogs,nftResponses))
-    //                 }
-    //         }
-    //         .switchIfEmpty(Flux.empty())
-    // }
-    //
-    // private fun mapToAccountLogResponses(accountLogs: List<AccountLog>, nftResponses: List<NftResponse>): List<AccountLogResponse> {
-    //     val nftMap = nftResponses.associateBy { it.id }
-    //     return accountLogs.map { accountLog ->
-    //         val nftResponse = nftMap[accountLog.nftId]!!
-    //         AccountLogResponse(
-    //             nftResponse = nftResponse,
-    //             timestamp = accountLog.timestamp,
-    //             accountType = accountLog.accountType
-    //         )
-    //     }
-    // }
-    //
-    //
-    // private fun getAllAccountLogsBy(userId: Long, accountType: AccountType?, pageable: Pageable) : Flux<AccountLog> {
-    //     val sortedPageable = PageRequest.of(pageable.pageNumber, pageable.pageSize, Sort.by(Sort.Direction.DESC, "timestamp"))
-    //     return if (accountType != null) {
-    //         accountLogRepository.findAllByUserIdAndAccountType(userId, accountType.toString(), sortedPageable)
-    //     }else{
-    //         accountLogRepository.findAllByUserId(userId, sortedPageable)
-    //     }
-    // }
     fun saveAccount(transfer: AdminTransferResponse): Mono<Void> {
         return walletRepository.findAllByAddress(transfer.walletAddress)
             .next()
@@ -97,7 +53,7 @@ class AccountService(
 
 
     private fun processTransfer(account: Account, transfer: AdminTransferResponse): Mono<Void> {
-        return if (transfer.transferType == TransferType.ERC721.toString()) {
+        return if (transfer.transferType == TransferType.ERC721) {
             processERC721Transfer(account, transfer)
         } else {
             processERC20Transfer(account, transfer)
@@ -114,7 +70,11 @@ class AccountService(
                 )
                 accountNftRepository.save(accountNft)
                     .doOnSuccess { savedAccountNft ->
-                        eventPublisher.publishEvent(AccountNftEvent(savedAccountNft, transfer.accountType, transfer.timestamp))
+                        eventPublisher.publishEvent(AccountNftEvent(
+                            savedAccountNft,
+                            transfer.accountType,
+                            transfer.timestamp,
+                        ))
                     }
                     .then()
             }
