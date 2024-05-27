@@ -13,7 +13,7 @@ class AuthApiService(
     authApiProperties: AuthApiProperties,
 ) {
     private val webClient = WebClient.builder()
-        .baseUrl(authApiProperties.uri ?: throw IllegalAccessException("must be auth-url"))
+        .baseUrl(authApiProperties.uri)
         .build()
 
 
@@ -25,9 +25,4 @@ class AuthApiService(
             .retrieve()
             .bodyToMono(JwtResponse::class.java)
     }
-
-    companion object {
-        private val baseUrl = "http://localhost:8081/v1/auth"
-    }
-
 }

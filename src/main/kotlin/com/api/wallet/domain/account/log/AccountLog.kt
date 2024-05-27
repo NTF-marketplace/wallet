@@ -1,19 +1,20 @@
 package com.api.wallet.domain.account.log
 
+import com.api.wallet.enums.AccountType
 import com.api.wallet.enums.TransferType
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 import java.math.BigDecimal
 
 @Table("account_log")
-class AccountLog(
+data class AccountLog(
     @Id val id : Long?= null,
     val accountId: Long,
     val nftId: Long?,
     val timestamp: Long,
-    val accountType: String,
+    val accountType: AccountType,
     val balance: BigDecimal?,
-    val transferType: String
+    val transferType: TransferType
 ) {
 
 }

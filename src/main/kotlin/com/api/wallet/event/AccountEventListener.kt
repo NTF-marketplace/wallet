@@ -1,40 +1,22 @@
 package com.api.wallet.event
 
-import com.api.wallet.domain.account.log.AccountLog
-import com.api.wallet.domain.account.log.AccountLogRepository
+import com.api.wallet.enums.TransferType
+import com.api.wallet.service.api.AccountLogService
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
 @Component
 class AccountEventListener(
-    private val accountLogRepository: AccountLogRepository,
+    private val accountLogService: AccountLogService,
 ) {
     @EventListener
-    fun handleAccountEvent(evnet: AccountEvent): Mono<Void> {
-        val accountLog = AccountLog(
-            id = null,
-            accountId = evnet.account.id!!,
-            nftId = null,
-            accountType = evnet.accountType,
-            timestamp = evnet.timestamp,
-            balance = evnet.account.balance,
-            transferType = "ERC20"
-        )
-        return accountLogRepository.save(accountLog).then()
+    fun handleAccountEvent(event: AccountEvent): Mono<Void> {
+        return accountLogService.saveAccountLog(event,TransferType.ERC20)
     }
 
     @EventListener
-    fun handleAccountNftEvent(evnet: AccountNftEvent): Mono<Void> {
-        val accountLog = AccountLog(
-            id = null,
-            accountId = evnet.accountNft.accountId,
-            nftId = evnet.accountNft.nftId,
-            accountType = evnet.accountType,
-            timestamp = evnet.timestamp,
-            balance = null,
-            transferType = "ERC721"
-        )
-        return accountLogRepository.save(accountLog).then()
+    fun handleAccountNftEvent(event: AccountNftEvent): Mono<Void> {
+       return accountLogService.saveAccountNft(event,TransferType.ERC721)
     }
 }

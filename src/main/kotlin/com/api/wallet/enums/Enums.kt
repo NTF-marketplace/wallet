@@ -1,18 +1,14 @@
 package com.api.wallet.enums
 
-
 enum class ChainType{
         ETHEREUM_MAINNET,
+        LINEA_MAINNET,
+        LINEA_SEPOLIA,
         POLYGON_MAINNET,
-        ETHREUM_GOERLI,
-        ETHREUM_SEPOLIA,
-        POLYGON_MUMBAI,
-}
+        ETHEREUM_HOLESKY,
+        ETHEREUM_SEPOLIA,
+        POLYGON_AMOY,
 
-// ChainType과 NetwordType 통일하기,
-enum class NetworkType{
-        ETHEREUM,
-        POLYGON,
 }
 
 enum class ContractType{
@@ -26,3 +22,5 @@ enum class AccountType{ DEPOSIT, WITHDRAW }
 enum class TransferType {
         ERC20,ERC721
 }
+
+enum class MyEnum { ORANGE,APPLE }

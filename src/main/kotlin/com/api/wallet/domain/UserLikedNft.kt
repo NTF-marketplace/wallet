@@ -1,6 +1,6 @@
 package com.api.wallet.domain
 
-class UserLikedNft(
+data class UserLikedNft(
     val userId: Long,
     val nftId: Long
 ) {
