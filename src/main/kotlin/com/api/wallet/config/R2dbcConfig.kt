@@ -1,6 +1,9 @@
 package com.api.wallet.config
 
+import com.api.wallet.enums.AccountType
+import com.api.wallet.enums.ChainType
 import com.api.wallet.enums.MyEnum
+import com.api.wallet.enums.TransferType
 import com.api.wallet.util.enumConvert.*
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration
 import io.r2dbc.postgresql.PostgresqlConnectionFactory
@@ -32,6 +35,9 @@ class R2dbcConfig : AbstractR2dbcConfiguration(){
             .codecRegistrar(
                 EnumCodec.builder()
                     .withEnum("my_enum", MyEnum::class.java)
+                    .withEnum("chain_type", ChainType::class.java)
+                    .withEnum("account_type", AccountType::class.java)
+                    .withEnum("transfer_type", TransferType::class.java)
                     .build()
             )
             .build()
@@ -44,6 +50,12 @@ class R2dbcConfig : AbstractR2dbcConfiguration(){
         val converters: MutableList<Converter<*, *>?> = ArrayList<Converter<*, *>?>()
         converters.add(MyEnumConverter(MyEnum::class.java))
         converters.add(StringToEnumConverter(MyEnum::class.java))
+        converters.add(ChinTypeConvert(ChainType::class.java))
+        converters.add((StringToEnumConverter(ChainType::class.java)))
+        converters.add(AccountTypeConvert(AccountType::class.java))
+        converters.add((StringToEnumConverter(AccountType::class.java)))
+        converters.add(TransferTypeConvert(TransferType::class.java))
+        converters.add((StringToEnumConverter(TransferType::class.java)))
         return R2dbcCustomConversions(storeConversions, converters)
     }
 

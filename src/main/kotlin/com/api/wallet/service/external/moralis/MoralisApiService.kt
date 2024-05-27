@@ -18,13 +18,13 @@ class MoralisApiService {
 
     private fun queryParamByChain(chain: ChainType): String? {
         val chain = when (chain) {
-            ChainType.ETHEREUM_MAINNET -> "eth"
-            ChainType.POLYGON_MAINNET -> "polygon"
-            ChainType.LINEA_MAINNET -> "goerli"
-            ChainType.LINEA_SEPOLIA -> "munbai"
-            ChainType.ETHEREUM_HOLESKY -> "sepolia"
-            ChainType.ETHEREUM_SEPOLIA -> "sepolia"
-            ChainType.POLYGON_AMOY -> "amoy"
+            ChainType.ETHEREUM_MAINNET -> "0x1"
+            ChainType.POLYGON_MAINNET -> "0x89"
+            ChainType.LINEA_MAINNET -> "0xe708"
+            ChainType.LINEA_SEPOLIA -> "0xe705"
+            ChainType.ETHEREUM_HOLESKY -> "0x4268"
+            ChainType.ETHEREUM_SEPOLIA -> "0xaa36a7"
+            ChainType.POLYGON_AMOY -> "0xaa36a7"
         }
         return chain
     }
