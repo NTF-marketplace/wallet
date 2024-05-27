@@ -55,8 +55,7 @@ CREATE TABLE IF NOT EXISTS nft (
     id BIGINT PRIMARY KEY,
     token_id VARCHAR(255) NOT NULL,
     token_address VARCHAR(255) NOT NULL,
-    chain_type chain_type,
-    contract_type VARCHAR(255) NOT NULL
+    chain_type chain_type
 );
 
 CREATE TABLE IF NOT EXISTS wallet_nft (
@@ -72,7 +71,7 @@ CREATE TABLE IF NOT EXISTS account (
     balance DECIMAL(19, 4) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS accountNft (
+CREATE TABLE IF NOT EXISTS account_Nft (
     id SERIAL PRIMARY KEY,
     account_id BIGINT REFERENCES account(id),
     nft_id BIGINT REFERENCES nft(id)

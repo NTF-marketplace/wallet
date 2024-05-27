@@ -115,10 +115,11 @@ class ValidatorTest(
 
         println("status : " + response?.statusCode)
         response?.body?.map {
-            println(it.nftName)
             println(it.id)
             println(it.tokenAddress)
         }
+
+        Thread.sleep(100000)
     }
 
     @Test

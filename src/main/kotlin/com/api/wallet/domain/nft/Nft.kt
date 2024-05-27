@@ -10,6 +10,5 @@ data class Nft(
     val tokenId: String,
     val tokenAddress: String,
     val chainType: ChainType,
-    val contractType: String,
 ) {
 }
