@@ -5,16 +5,12 @@ import com.api.wallet.domain.nft.repository.NftRepository
 import com.api.wallet.domain.wallet.Wallet
 import com.api.wallet.domain.wallet.repository.WalletRepository
 import com.api.wallet.domain.walletNft.WalletNft
-import com.api.wallet.domain.walletNft.repository.WalletNftDto
 import com.api.wallet.domain.walletNft.repository.WalletNftRepository
 import com.api.wallet.enums.ChainType
-import com.api.wallet.service.external.moralis.MoralisApiService
-import com.api.wallet.service.external.moralis.dto.response.NFTResult
 import com.api.wallet.service.external.nft.NftApiService
 import com.api.wallet.service.external.nft.dto.NftRequest
 import com.api.wallet.service.external.nft.dto.NftResponse
 import com.api.wallet.service.external.nft.dto.NftResponse.Companion.toEntity
-import com.api.wallet.util.Util.convertNetworkTypeToChainType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux

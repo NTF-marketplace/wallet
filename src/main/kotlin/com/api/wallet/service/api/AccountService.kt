@@ -12,6 +12,7 @@ import com.api.wallet.event.AccountNftEvent
 import com.api.wallet.rabbitMQ.dto.AdminTransferResponse
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import java.math.BigDecimal
@@ -25,6 +26,19 @@ class AccountService(
     private val accountNftRepository: AccountNftRepository,
 
 ) {
+
+
+    fun findByAccountNftByAddress(address: String): Flux<AccountNft> {
+         return walletRepository.findAllByAddress(address)
+            .next()
+            .flatMap { wallet ->
+                findByAccountOrCreate(wallet.userId)
+            }.flatMapMany {
+                accountNftRepository.findByAccountId(it.id!!)
+             }
+    }
+
+
     fun findByAccountOrCreate(userId: Long) : Mono<Account> {
         return accountRepository.findByUserId(userId).switchIfEmpty {
             accountRepository.save(
