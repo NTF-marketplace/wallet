@@ -8,6 +8,7 @@ import reactor.core.publisher.Mono
 
 interface WalletRepository : ReactiveCrudRepository<Wallet,Long>, WalletRepositorySupport {
     fun findByAddressAndChainType(address: String, chainType: ChainType): Mono<Wallet>
+
     fun findAllByAddress(address: String): Flux<Wallet>
 
     fun findByChainType(chainType: ChainType): Flux<Wallet>

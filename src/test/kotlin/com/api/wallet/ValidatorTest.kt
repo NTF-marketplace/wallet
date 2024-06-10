@@ -7,10 +7,8 @@ import com.api.wallet.domain.account.log.AccountLogRepository
 import com.api.wallet.domain.wallet.repository.WalletRepository
 import com.api.wallet.enums.AccountType
 import com.api.wallet.enums.ChainType
-import com.api.wallet.enums.MyEnum
 import com.api.wallet.enums.TransferType
 import com.api.wallet.rabbitMQ.dto.AdminTransferResponse
-import com.api.wallet.service.api.AccountLogService
 import com.api.wallet.service.api.AccountService
 import com.api.wallet.service.api.NftService
 import com.api.wallet.service.api.WalletService
@@ -90,9 +88,23 @@ class ValidatorTest(
         println("response : " + res.block())
     }
 
+    @Test
+    fun signin1() {
+        val request = ValidateRequest(
+            address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
+            message = "Hello, MetaMask!",
+            signature = "0x5714c3d6a6773a614091a9ac81dc8f4f6a0219349ddb4010edb6595c47b158814a9265e2c17aa7f7cfe479636a96c9f93cd665b213cc76b005c4b742edb6b27c1c",
+            chain = ChainType.POLYGON_MAINNET
+        )
+        val response  = walletService.signInOrSignUp(request).block()
+
+        println(response?.wallet?.balance)
+        println(response?.tokens?.accessToken)
+        println(response?.tokens?.refreshToken)
+    }
 
     @Test
-    fun signin() {
+    fun signin2() {
         val request = ValidateRequest(
             address = "0x9bDeF468ae33b09b12a057B4c9211240D63BaE65",
             message = "Hello, MetaMask!",
@@ -119,7 +131,6 @@ class ValidatorTest(
             println(it.tokenAddress)
         }
 
-        Thread.sleep(100000)
     }
 
     @Test
@@ -139,7 +150,8 @@ class ValidatorTest(
             timestamp =  Instant.now().toEpochMilli(),
             accountType = AccountType.DEPOSIT,
             transferType = TransferType.ERC721,
-            balance = null
+            balance = null,
+            chainType = ChainType.POLYGON_MAINNET
         )
         accountService.saveAccount(response).block()
 
@@ -152,5 +164,11 @@ class ValidatorTest(
         println(account?.accountId)
         println(account?.accountType)
     }
+
+//    @Test
+//    fun findAllAccountByAddress() {
+//        val walletAddress = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
+//        accountService.findByAccountByAddress(walletAddress)
+//    }
 
 }

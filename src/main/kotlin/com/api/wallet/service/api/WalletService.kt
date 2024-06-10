@@ -9,7 +9,6 @@ import com.api.wallet.domain.wallet.repository.WalletRepository
 import com.api.wallet.enums.ChainType
 import com.api.wallet.service.external.auth.AuthApiService
 import com.api.wallet.service.external.infura.InfuraApiService
-import com.api.wallet.util.Util.convertNetworkTypeToChainType
 import com.api.wallet.validator.SignatureValidator
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

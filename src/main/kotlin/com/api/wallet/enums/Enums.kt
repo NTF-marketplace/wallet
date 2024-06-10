@@ -24,3 +24,8 @@ enum class TransferType {
 }
 
 enum class MyEnum { ORANGE,APPLE }
+
+enum class TokenType {
+        MATIC, ETH
+}
+

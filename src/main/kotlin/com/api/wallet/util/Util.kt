@@ -1,6 +1,7 @@
 package com.api.wallet.util
 
 import com.api.wallet.enums.ChainType
+import com.api.wallet.enums.TokenType
 import com.google.gson.Gson
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -25,4 +26,15 @@ object Util {
     }
 
     fun String.toTimestamp() = Instant.parse(this).toEpochMilli()
+
+    fun ChainType.toTokenType(): TokenType {
+        return when (this) {
+            ChainType.ETHEREUM_MAINNET -> TokenType.ETH
+            ChainType.POLYGON_MAINNET -> TokenType.MATIC
+            ChainType.POLYGON_AMOY -> TokenType.MATIC
+            ChainType.ETHEREUM_SEPOLIA -> TokenType.ETH
+            ChainType.ETHEREUM_HOLESKY -> TokenType.ETH
+            else -> throw IllegalArgumentException("Unknown ChainType: $this")
+        }
+    }
 }

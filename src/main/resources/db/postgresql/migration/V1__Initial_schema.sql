@@ -67,11 +67,11 @@ CREATE TABLE IF NOT EXISTS wallet_nft (
 
 CREATE TABLE IF NOT EXISTS account (
     id SERIAL PRIMARY KEY,
-    user_id BIGINT REFERENCES users(id),
+    wallet_id BIGINT REFERENCES wallet(id),
     balance DECIMAL(19, 4) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS account_Nft (
+CREATE TABLE IF NOT EXISTS account_nft (
     id SERIAL PRIMARY KEY,
     account_id BIGINT REFERENCES account(id),
     nft_id BIGINT REFERENCES nft(id)
