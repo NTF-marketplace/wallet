@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.domain.PageRequest
 import reactor.test.StepVerifier
 import java.time.Instant
 
@@ -122,8 +123,8 @@ class ValidatorTest(
     fun readAllNfts() {
         val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
 //        val nftList= nftService.readAllNftByWallet(address,null).blockLast()
-
-        val response = walletController.readAllNftByWallet(null,address).block()
+        val page = PageRequest.of(0,10)
+        val response = walletController.getAllNft(null,address,page).block()
 
         println("status : " + response?.statusCode)
         response?.body?.map {

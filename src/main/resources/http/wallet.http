@@ -1,0 +1,14 @@
+GET http://localhost:8083/v1/wallet/ETHEREUM_MAINNET?address=0x01b72b4aa3f66f213d62d53e829bc172a6a72867
+Content-Type: application/json
+
+###
+GET http://localhost:8083/v1/wallet/nft?chainType=POLYGON_MAINNET&address=0x01b72b4aa3f66f213d62d53e829bc172a6a72867&page=0&size=3
+Content-Type: application/json
+
+####
+GET http://localhost:8083/v1/account/nft?address=0x01b72b4aa3f66f213d62d53e829bc172a6a72867&page=0&size=2
+Content-Type: application/json
+
+###
+GET http://localhost:8083/v1/account?address=0x01b72b4aa3f66f213d62d53e829bc172a6a72867
+Content-Type: application/json

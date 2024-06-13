@@ -2,6 +2,7 @@ package com.api.wallet.service.api
 
 import com.api.wallet.controller.dto.request.ValidateRequest
 import com.api.wallet.controller.dto.response.SignInResponse
+import com.api.wallet.controller.dto.response.WalletAccountResponse
 import com.api.wallet.domain.user.Users
 import com.api.wallet.domain.user.repository.UserRepository
 import com.api.wallet.domain.wallet.Wallet
@@ -11,9 +12,13 @@ import com.api.wallet.service.external.auth.AuthApiService
 import com.api.wallet.service.external.infura.InfuraApiService
 import com.api.wallet.validator.SignatureValidator
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toFlux
 import java.math.BigDecimal
 
 @Service
@@ -23,18 +28,27 @@ class WalletService(
     private val userRepository: UserRepository,
     private val infuraApiService: InfuraApiService,
     private val authApiService: AuthApiService,
+    @Lazy private val accountService: AccountService,
 ) {
     private final val logger = LoggerFactory.getLogger(this.javaClass)
+
+
+    fun getWalletAccount(address:String,chainType: ChainType): Mono<WalletAccountResponse>  {
+        return findOrCreateUserAndWallet(address,chainType).flatMap {wallet ->
+            val account = accountService.findByAccountByWallet(wallet)
+            Mono.zip(Mono.just(wallet.balance), account) { balance, accounts ->
+                WalletAccountResponse(balance,accounts)
+            }
+        }
+    }
+
 
     @Transactional
     fun signInOrSignUp(request: ValidateRequest): Mono<SignInResponse> {
         return if (authenticateWallet(request)) {
-            findOrCreateUserAndWallet(request)
+            findOrCreateUserAndWallet(request.address,request.chain)
                 .flatMap { wallet ->
-                    updateWalletBalance(wallet, request.chain)
-                        .flatMap {
-                            getTokens(it)
-                        }
+                    getTokens(wallet)
                 }
         } else {
             Mono.error(IllegalArgumentException("not valid Wallet Address"))
@@ -48,26 +62,38 @@ class WalletService(
             }
     }
 
-    fun findOrCreateUserAndWallet(request: ValidateRequest): Mono<Wallet> {
-        return walletRepository.findByAddressAndChainType(request.address, request.chain)
-                    .switchIfEmpty(Mono.defer {
-                        createUserAndWallet(request.address, request.chain)
-                    })
+    fun findWallet(address: String, chain: ChainType?): Flux<Wallet> {
+        return (if (chain != null) {
+            walletRepository.findByAddressAndChainType(address, chain)
+        } else {
+            walletRepository.findAllByAddress(address)
+        }).toFlux().switchIfEmpty(Flux.error(IllegalArgumentException("Wallet not found")))
+    }
 
+
+
+    private fun findOrCreateUserAndWallet(address: String, chain: ChainType): Mono<Wallet> {
+        return walletRepository.findByAddressAndChainType(address, chain)
+            .switchIfEmpty {
+                userRepository.save(Users(nickName = "Unknown"))
+                    .flatMap { user ->
+                        walletRepository.save(
+                            Wallet(
+                                address = address,
+                                userId = user.id!!,
+                                chainType = chain,
+                                balance = BigDecimal.ZERO,
+                                createdAt = System.currentTimeMillis(),
+                                updatedAt = System.currentTimeMillis()
+                            )
+                        )
+                    }
+            }
+            .flatMap { wallet ->
+                updateWalletBalance(wallet, wallet.chainType)
+            }
     }
-    private fun createUserAndWallet(address: String, chain: ChainType): Mono<Wallet> {
-        return userRepository.save(Users(nickName = "Unknown"))
-                .flatMap { user ->
-                    walletRepository.save(Wallet(
-                        address = address,
-                        userId = user.id!!,
-                        chainType = chain,
-                        balance = BigDecimal.ZERO,
-                        createdAt = System.currentTimeMillis(),
-                        updatedAt = System.currentTimeMillis())
-                    )
-                }
-    }
+
 
     private fun authenticateWallet(request: ValidateRequest): Boolean {
         return signatureValidator.verifySignature(request)

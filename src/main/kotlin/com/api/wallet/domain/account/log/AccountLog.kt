@@ -16,5 +16,4 @@ data class AccountLog(
     val balance: BigDecimal?,
     val transferType: TransferType
 ) {
-
 }

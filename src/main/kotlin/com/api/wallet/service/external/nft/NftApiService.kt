@@ -18,7 +18,7 @@ class NftApiService(
 ) {
 
     private val webClient = WebClient.builder()
-        .baseUrl(nftApiProperties.uri ?: throw IllegalAccessException("must be nft-url"))
+        .baseUrl(nftApiProperties.uri )
         .build()
 
     fun getNftBatch(requests: List<NftBatchRequest>): Flux<NftResponse> {
