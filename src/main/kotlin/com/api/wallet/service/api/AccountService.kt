@@ -57,17 +57,20 @@ class AccountService(
             }
     }
 
-
-    fun findByAccountNftByAddress(address: String,chainType: ChainType?,pageable: Pageable): Mono<Page<NftResponse>> {
-        return findAllAccountByAddress(address,chainType)
+    fun findByAccountNftByAddress(address: String, chainType: ChainType?, pageable: Pageable): Mono<Page<NftResponse>> {
+        return findAllAccountByAddress(address, chainType)
             .flatMap { account ->
                 accountNftRepository.findByAccountId(account.id!!)
-                    .flatMap { accountNft ->
-                        nftRepository.findById(accountNft.nftId)
-                            .map { nft -> toNftResponse(nft) }
-                    }
-            }.let { toPagedMono(it,pageable) }
+            }
+            .map { it.nftId }
+            .collectList()
+            .flatMap { nftIds ->
+                nftRepository.findAllByIdIn(nftIds)
+                    .map { nft -> toNftResponse(nft) }
+                    .let { toPagedMono(it,pageable) }
+            }
     }
+
 
     fun findAllAccountByAddress(address: String, chainType: ChainType?): Flux<Account> {
         return walletService.findWallet(address,chainType)

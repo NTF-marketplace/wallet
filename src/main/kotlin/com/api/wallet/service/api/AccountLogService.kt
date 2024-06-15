@@ -24,35 +24,55 @@ class AccountLogService(
     private val accountService: AccountService,
     private val nftRepository: NftRepository,
 ) {
-
-    fun findAllByAccountLog(address: String, accountType: AccountType, pageable: Pageable): Mono<Page<AccountLogResponse>> {
+    fun findAllByAccountLog(address: String, accountType: AccountType?, pageable: Pageable): Mono<Page<AccountLogResponse>> {
         return accountService.findAllAccountByAddress(address, null)
             .mapNotNull { it.id!! }
             .collectList()
             .flatMap { accountIds ->
-                val accountLogsFlux = accountLogRepository.findByAccountIdInAndAccountTypeOrderByTimestampDesc(accountIds, accountType, pageable)
-                    .concatMap { accountLog -> // flatMap 결과 정렬이 흐트러짐 concatMap 으로 순서유지
-                        toAccountLogResponse(accountLog)
+                val accountLogs = getAccountLogs(accountIds, accountType, pageable)
+                val count = getCount(accountIds, accountType)
+
+                accountLogs
+                    .collectList()
+                    .flatMap { accountLogs ->
+                        toAccountLogResponses(accountLogs)
                     }
-                    .collectList().flatMapMany { Flux.fromIterable(it) }
-
-                val countMono = accountLogRepository.countByAccountIdInAndAccountType(accountIds, accountType)
-
-                toPage(accountLogsFlux, pageable, countMono)
+                    .flatMap { accountLogResponses ->
+                        toPage(Flux.fromIterable(accountLogResponses), pageable, count)
+                    }
             }
     }
 
-
-    fun toAccountLogResponse(accountLog: AccountLog): Mono<AccountLogResponse> {
-        return if (accountLog.transferType == TransferType.ERC721 && accountLog.nftId != null) {
-            nftRepository.findById(accountLog.nftId)
-                .map { nft -> accountLog.toResponse(toNftResponse(nft) )}
-                .defaultIfEmpty(accountLog.toResponse(null))
+    private fun getAccountLogs(accountIds: List<Long>, accountType: AccountType?, pageable: Pageable): Flux<AccountLog> {
+        return if (accountType == null) {
+            accountLogRepository.findByAccountIdInOrderByTimestampDesc(accountIds, pageable)
         } else {
-            Mono.just(accountLog.toResponse(null))
+            accountLogRepository.findByAccountIdInAndAccountTypeOrderByTimestampDesc(accountIds, accountType, pageable)
         }
     }
 
+    private fun getCount(accountIds: List<Long>, accountType: AccountType?): Mono<Long> {
+        return if (accountType == null) {
+            accountLogRepository.countByAccountIdIn(accountIds)
+        } else {
+            accountLogRepository.countByAccountIdInAndAccountType(accountIds, accountType)
+        }
+    }
+
+    private fun toAccountLogResponses(accountLogs: List<AccountLog>): Mono<List<AccountLogResponse>> {
+        val nftIds = accountLogs.filter { it.transferType == TransferType.ERC721 && it.nftId != null }
+            .mapNotNull { it.nftId }
+
+        return nftRepository.findAllByIdIn(nftIds)
+            .collectList()
+            .map { nfts ->
+                val nftMap = nfts.associateBy { it.id }
+                accountLogs.map { accountLog ->
+                    val nftResponse = accountLog.nftId?.let { nftMap[it]?.let { nft -> toNftResponse(nft) } }
+                    accountLog.toResponse(nftResponse)
+                }
+            }
+    }
 
     fun AccountLog.toResponse(nftResponse: NftResponse?): AccountLogResponse {
         return AccountLogResponse(

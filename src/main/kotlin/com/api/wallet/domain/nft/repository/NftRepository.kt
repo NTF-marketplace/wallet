@@ -7,6 +7,6 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 interface NftRepository : ReactiveCrudRepository<Nft,Long>, NftRepositorySupport {
-
+    fun findAllByIdIn(ids: List<Long>) : Flux<Nft>
     fun findByTokenAddressAndChainTypeAndTokenId(address: String, chainType: ChainType,tokenId: String): Mono<Nft>
 }

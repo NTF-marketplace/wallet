@@ -11,5 +11,4 @@ interface WalletRepository : ReactiveCrudRepository<Wallet,Long>, WalletReposito
 
     fun findAllByAddress(address: String): Flux<Wallet>
 
-    fun findByChainType(chainType: ChainType): Flux<Wallet>
 }

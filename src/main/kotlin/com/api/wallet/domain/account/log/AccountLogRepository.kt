@@ -13,4 +13,7 @@ interface AccountLogRepository : ReactiveCrudRepository<AccountLog,Long> {
 
     fun countByAccountIdInAndAccountType(ids:List<Long>, accountType: AccountType) : Mono<Long>
 
+    fun findByAccountIdInOrderByTimestampDesc(ids:List<Long>,pageable: Pageable) : Flux<AccountLog>
+    fun countByAccountIdIn(ids:List<Long>): Mono<Long>
+
 }
