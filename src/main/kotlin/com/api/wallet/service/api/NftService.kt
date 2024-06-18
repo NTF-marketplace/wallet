@@ -3,39 +3,36 @@ package com.api.wallet.service.api
 import com.api.wallet.domain.nft.Nft
 import com.api.wallet.domain.nft.repository.NftRepository
 import com.api.wallet.domain.wallet.Wallet
-import com.api.wallet.domain.wallet.repository.WalletRepository
 import com.api.wallet.domain.walletNft.WalletNft
-import com.api.wallet.domain.walletNft.repository.WalletNftDto
 import com.api.wallet.domain.walletNft.repository.WalletNftRepository
 import com.api.wallet.enums.ChainType
-import com.api.wallet.service.external.moralis.MoralisApiService
-import com.api.wallet.service.external.moralis.dto.response.NFTResult
 import com.api.wallet.service.external.nft.NftApiService
 import com.api.wallet.service.external.nft.dto.NftRequest
 import com.api.wallet.service.external.nft.dto.NftResponse
 import com.api.wallet.service.external.nft.dto.NftResponse.Companion.toEntity
-import com.api.wallet.util.Util.convertNetworkTypeToChainType
+import com.api.wallet.util.Util.toPagedMono
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @Service
 class NftService(
     private val nftRepository: NftRepository,
-    private val walletRepository: WalletRepository,
     private val walletNftRepository: WalletNftRepository,
     private val nftApiService: NftApiService,
+    private val walletService: WalletService,
 ) {
 
     fun save(response: NftResponse): Mono<Void> {
         return nftRepository.findById(response.id)
             .switchIfEmpty(
-            nftRepository.insert(response.toEntity())
-        ).then()
+                nftRepository.insert(response.toEntity())
+            ).then()
     }
 
-    fun findOrCreateNft(nftId: Long,tokenAddress: String, tokenId: String, chainType: ChainType): Mono<Nft> {
+    fun findOrCreateNft(nftId: Long, tokenAddress: String, tokenId: String, chainType: ChainType): Mono<Nft> {
         return nftRepository.findById(nftId)
             .switchIfEmpty(
                 nftApiService.getNftSave(
@@ -49,16 +46,12 @@ class NftService(
             )
     }
 
-    @Transactional
-    fun readAllNftByWallet(address: String, chainType:ChainType?): Flux<NftResponse> {
-        val wallets = if (chainType != null) {
-            walletRepository.findByAddressAndChainType(address, chainType).flux()
-        } else {
-            walletRepository.findAllByAddress(address)
-        }
-        return wallets
+    fun readAllNftByWallet(address: String, chainType: ChainType?, pageable: Pageable): Mono<Page<NftResponse>> {
+        return walletService.findWallet(address, chainType)
             .flatMap { wallet ->
                 getNftByWallet(wallet)
+            }.let{
+                toPagedMono( it, pageable)
             }
     }
 

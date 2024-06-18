@@ -1,17 +1,30 @@
 package com.api.wallet.service.api
 
+import com.api.wallet.controller.dto.response.AccountResponse
+import com.api.wallet.controller.dto.response.AccountResponse.Companion.toResponse
 import com.api.wallet.domain.account.Account
 import com.api.wallet.domain.account.AccountRepository
 import com.api.wallet.domain.account.nft.AccountNft
 import com.api.wallet.domain.account.nft.AccountNftRepository
 import com.api.wallet.domain.nft.repository.NftRepository
+import com.api.wallet.domain.wallet.Wallet
 import com.api.wallet.domain.wallet.repository.WalletRepository
+import com.api.wallet.enums.ChainType
 import com.api.wallet.enums.TransferType
 import com.api.wallet.event.AccountEvent
 import com.api.wallet.event.AccountNftEvent
 import com.api.wallet.rabbitMQ.dto.AdminTransferResponse
+import com.api.wallet.service.external.nft.dto.NftResponse
+import com.api.wallet.storage.PriceStorage
+import com.api.wallet.util.Util.toNftResponse
+import com.api.wallet.util.Util.toPagedMono
+import com.api.wallet.util.Util.toTokenType
 import org.springframework.context.ApplicationEventPublisher
+import org.springframework.context.annotation.Lazy
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import java.math.BigDecimal
@@ -20,28 +33,69 @@ import java.math.BigDecimal
 class AccountService(
     private val accountRepository: AccountRepository,
     private val walletRepository: WalletRepository,
+    @Lazy private val walletService: WalletService,
     private val nftRepository: NftRepository,
     private val eventPublisher: ApplicationEventPublisher,
     private val accountNftRepository: AccountNftRepository,
+    private val priceStorage: PriceStorage,
 
-) {
-    fun findByAccountOrCreate(userId: Long) : Mono<Account> {
-        return accountRepository.findByUserId(userId).switchIfEmpty {
+    ) {
+
+    fun findByAccountsByAddress(address:String) : Flux<AccountResponse> {
+        return walletRepository.findAllByAddress(address)
+            .flatMap { findByAccountByWallet(it) }
+            .collectList()
+            .flatMapMany { Flux.fromIterable(it) }
+    }
+
+
+    fun findByAccountByWallet(wallet: Wallet): Mono<AccountResponse> {
+        return accountRepository.findByWalletId(wallet.id!!)
+            .map { account ->
+                val usdt = priceStorage.get(wallet.chainType.toTokenType())
+                account.toResponse(usdt)
+            }
+    }
+
+    fun findByAccountNftByAddress(address: String, chainType: ChainType?, pageable: Pageable): Mono<Page<NftResponse>> {
+        return findAllAccountByAddress(address, chainType)
+            .flatMap { account ->
+                accountNftRepository.findByAccountId(account.id!!)
+            }
+            .map { it.nftId }
+            .collectList()
+            .flatMap { nftIds ->
+                nftRepository.findAllByIdIn(nftIds)
+                    .map { nft -> toNftResponse(nft) }
+                    .let { toPagedMono(it,pageable) }
+            }
+    }
+
+
+    fun findAllAccountByAddress(address: String, chainType: ChainType?): Flux<Account> {
+        return walletService.findWallet(address,chainType)
+            .flatMap {
+                findByAccountOrCreate(it)
+        }.collectList().flatMapMany { Flux.fromIterable(it) }
+    }
+
+    fun findByAccountOrCreate(wallet: Wallet) : Mono<Account> {
+        return accountRepository.findByWalletId(wallet.id!!).switchIfEmpty {
             accountRepository.save(
                 Account(
                     id = null,
-                    userId = userId,
+                    walletId = wallet.id,
                     balance = BigDecimal.ZERO
                 )
             )
         }
     }
 
+
     fun saveAccount(transfer: AdminTransferResponse): Mono<Void> {
-        return walletRepository.findAllByAddress(transfer.walletAddress)
-            .next()
+        return walletRepository.findByAddressAndChainType(transfer.walletAddress,transfer.chainType)
             .flatMap { wallet ->
-                findByAccountOrCreate(wallet.userId)
+                findByAccountOrCreate(wallet)
             }
             .flatMap { processTransfer(it,transfer) }
             .then()
@@ -81,8 +135,8 @@ class AccountService(
     }
 
     private fun processERC20Transfer(account: Account, transfer: AdminTransferResponse): Mono<Void> {
-        account.updateBalance(transfer.balance!!)
-        return accountRepository.save(account)
+        val updatedBalance = account.updateBalance(transfer.balance!!)
+        return accountRepository.save(updatedBalance)
             .doOnSuccess { savedAccount ->
                 eventPublisher.publishEvent(AccountEvent(savedAccount, transfer.accountType, transfer.timestamp))
             }

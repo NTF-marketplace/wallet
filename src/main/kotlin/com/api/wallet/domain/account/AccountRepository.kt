@@ -6,5 +6,5 @@ import reactor.core.publisher.Mono
 
 interface AccountRepository : ReactiveCrudRepository<Account,Long> {
 
-    fun findByUserId(userId: Long): Mono<Account>
+    fun findByWalletId(walletId: Long): Mono<Account>
 }
