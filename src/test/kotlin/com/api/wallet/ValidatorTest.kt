@@ -36,6 +36,7 @@ class ValidatorTest(
     @Autowired private val walletRepository: WalletRepository,
     @Autowired private val accountLogRepository: AccountLogRepository,
     @Autowired private val testRepository: TestRepository,
+    @Autowired private val redisService: RedisService,
 ) {
 
     @Test
@@ -126,8 +127,8 @@ class ValidatorTest(
         val page = PageRequest.of(0,10)
         val response = walletController.getAllNft(null,address,page).block()
 
-        println("status : " + response?.statusCode)
-        response?.body?.map {
+        println("status : " + response)
+        response?.content?.map {
             println(it.id)
             println(it.tokenAddress)
         }
@@ -171,5 +172,11 @@ class ValidatorTest(
 //        val walletAddress = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
 //        accountService.findByAccountByAddress(walletAddress)
 //    }
+    
+    @Test
+    fun redistest() {
+        val res = redisService.getNft(3L).block()
+        println(res.toString())
+    }
 
 }

@@ -36,6 +36,8 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-amqp")
 
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.springframework:spring-context")
     //web3j
     implementation("org.web3j:core:4.9.1")
 
