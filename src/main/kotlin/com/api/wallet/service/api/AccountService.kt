@@ -1,7 +1,9 @@
 package com.api.wallet.service.api
 
+import com.api.wallet.RedisService
 import com.api.wallet.controller.dto.response.AccountResponse
 import com.api.wallet.controller.dto.response.AccountResponse.Companion.toResponse
+import com.api.wallet.controller.dto.response.NftMetadataResponse
 import com.api.wallet.domain.account.Account
 import com.api.wallet.domain.account.AccountRepository
 import com.api.wallet.domain.account.nft.AccountNft
@@ -38,7 +40,7 @@ class AccountService(
     private val eventPublisher: ApplicationEventPublisher,
     private val accountNftRepository: AccountNftRepository,
     private val priceStorage: PriceStorage,
-
+    private val redisService: RedisService,
     ) {
 
     fun findByAccountsByAddress(address:String) : Flux<AccountResponse> {
@@ -57,7 +59,21 @@ class AccountService(
             }
     }
 
-    fun findByAccountNftByAddress(address: String, chainType: ChainType?, pageable: Pageable): Mono<Page<NftResponse>> {
+    // fun findByAccountNftByAddress(address: String, chainType: ChainType?, pageable: Pageable): Mono<Page<NftResponse>> {
+    //     return findAllAccountByAddress(address, chainType)
+    //         .flatMap { account ->
+    //             accountNftRepository.findByAccountId(account.id!!)
+    //         }
+    //         .map { it.nftId }
+    //         .collectList()
+    //         .flatMap { nftIds ->
+    //             nftRepository.findAllByIdIn(nftIds)
+    //                 .map { nft -> toNftResponse(nft) }
+    //                 .let { toPagedMono(it,pageable) }
+    //         }
+    // }
+
+    fun findByAccountNftByAddress(address: String, chainType: ChainType?, pageable: Pageable): Mono<Page<NftMetadataResponse>> {
         return findAllAccountByAddress(address, chainType)
             .flatMap { account ->
                 accountNftRepository.findByAccountId(account.id!!)
@@ -65,11 +81,11 @@ class AccountService(
             .map { it.nftId }
             .collectList()
             .flatMap { nftIds ->
-                nftRepository.findAllByIdIn(nftIds)
-                    .map { nft -> toNftResponse(nft) }
-                    .let { toPagedMono(it,pageable) }
+                toPagedMono(redisService.getNfts(nftIds),pageable)
             }
     }
+
+
 
 
     fun findAllAccountByAddress(address: String, chainType: ChainType?): Flux<Account> {

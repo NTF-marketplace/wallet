@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.domain.PageRequest
 import reactor.test.StepVerifier
+import java.math.BigDecimal
 import java.time.Instant
 
 @SpringBootTest
@@ -127,7 +128,6 @@ class ValidatorTest(
         val page = PageRequest.of(0,10)
         val response = walletController.getAllNft(null,address,page).block()
 
-        println("status : " + response)
         response?.content?.map {
             println(it.id)
             println(it.tokenAddress)
@@ -146,13 +146,13 @@ class ValidatorTest(
     @Test
     fun test2() {
         val response = AdminTransferResponse(
-            id= 1L,
+            id= 3L,
             walletAddress = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
-            nftId = 1L,
+            nftId = null,
             timestamp =  Instant.now().toEpochMilli(),
             accountType = AccountType.DEPOSIT,
-            transferType = TransferType.ERC721,
-            balance = null,
+            transferType = TransferType.ERC20,
+            balance = BigDecimal(0.8),
             chainType = ChainType.POLYGON_MAINNET
         )
         accountService.saveAccount(response).block()

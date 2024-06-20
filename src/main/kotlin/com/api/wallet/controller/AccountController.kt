@@ -2,6 +2,7 @@ package com.api.wallet.controller
 
 import com.api.wallet.controller.dto.response.AccountLogResponse
 import com.api.wallet.controller.dto.response.AccountResponse
+import com.api.wallet.controller.dto.response.NftMetadataResponse
 import com.api.wallet.enums.AccountType
 import com.api.wallet.enums.ChainType
 import com.api.wallet.service.api.AccountLogService
@@ -29,7 +30,7 @@ class AccountController(
         @RequestParam address: String,
         @RequestParam(required = false) chainType: ChainType?,
         @PageableDefault(size = 50) pageable: Pageable,
-    ): Mono<Page<NftResponse>> {
+    ): Mono<Page<NftMetadataResponse>> {
         return accountService.findByAccountNftByAddress(address,chainType,pageable)
     }
 

@@ -1,5 +1,7 @@
 package com.api.wallet.service.api
 
+import com.api.wallet.RedisService
+import com.api.wallet.controller.dto.response.NftMetadataResponse
 import com.api.wallet.domain.nft.Nft
 import com.api.wallet.domain.nft.repository.NftRepository
 import com.api.wallet.domain.wallet.Wallet
@@ -23,6 +25,7 @@ class NftService(
     private val walletNftRepository: WalletNftRepository,
     private val nftApiService: NftApiService,
     private val walletService: WalletService,
+    private val redisService: RedisService,
 ) {
 
     fun save(response: NftResponse): Mono<Void> {
@@ -42,14 +45,20 @@ class NftService(
                         tokenId,
                         chainType
                     )
-                ).flatMap { nftRepository.insert(it.toEntity()) }
+                ).flatMap {
+                    nftRepository.insert(it.toEntity()) }
             )
     }
 
-    fun readAllNftByWallet(address: String, chainType: ChainType?, pageable: Pageable): Mono<Page<NftResponse>> {
+    fun readAllNftByWallet(address: String, chainType: ChainType?, pageable: Pageable): Mono<Page<NftMetadataResponse>> {
         return walletService.findWallet(address, chainType)
             .flatMap { wallet ->
                 getNftByWallet(wallet)
+                    .map { it.id }
+                    .collectList()
+                    .flatMapMany { nftIds ->
+                        redisService.getNfts(nftIds)
+                    }
             }.let{
                 toPagedMono( it, pageable)
             }
@@ -81,6 +90,7 @@ class NftService(
 
         return Flux.fromIterable(nftsToAdd)
             .flatMap { nftResponse ->
+                println("data2?")
                 findOrCreateNft(nftResponse.id, nftResponse.tokenAddress, nftResponse.tokenId, nftResponse.chainType)
                     .flatMap {
                         walletNftRepository.save(

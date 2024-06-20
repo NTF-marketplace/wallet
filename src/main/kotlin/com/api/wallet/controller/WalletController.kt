@@ -1,5 +1,6 @@
 package com.api.wallet.controller
 
+import com.api.wallet.controller.dto.response.NftMetadataResponse
 import com.api.wallet.controller.dto.response.WalletAccountResponse
 import com.api.wallet.enums.ChainType
 import com.api.wallet.service.api.NftService
@@ -24,7 +25,7 @@ class WalletController(
         @RequestParam(required = false) chainType: ChainType?,
         @RequestParam address: String,
         @PageableDefault(size = 50) pageable: Pageable,
-    ): Mono<Page<NftResponse>> {
+    ): Mono<Page<NftMetadataResponse>> {
         return nftService.readAllNftByWallet(address, chainType,pageable)
 
     }
