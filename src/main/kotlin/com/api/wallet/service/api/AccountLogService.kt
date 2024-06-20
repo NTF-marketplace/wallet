@@ -1,6 +1,8 @@
 package com.api.wallet.service.api
 
+import com.api.wallet.RedisService
 import com.api.wallet.controller.dto.response.AccountLogResponse
+import com.api.wallet.controller.dto.response.NftMetadataResponse
 import com.api.wallet.domain.account.log.AccountLog
 import com.api.wallet.domain.account.log.AccountLogRepository
 import com.api.wallet.domain.nft.repository.NftRepository
@@ -23,6 +25,7 @@ class AccountLogService(
     private val accountLogRepository: AccountLogRepository,
     private val accountService: AccountService,
     private val nftRepository: NftRepository,
+    private val redisService: RedisService,
 ) {
     fun findAllByAccountLog(address: String, accountType: AccountType?, pageable: Pageable): Mono<Page<AccountLogResponse>> {
         return accountService.findAllAccountByAddress(address, null)
@@ -63,18 +66,18 @@ class AccountLogService(
         val nftIds = accountLogs.filter { it.transferType == TransferType.ERC721 && it.nftId != null }
             .mapNotNull { it.nftId }
 
-        return nftRepository.findAllByIdIn(nftIds)
+        return redisService.getNfts(nftIds)
             .collectList()
             .map { nfts ->
                 val nftMap = nfts.associateBy { it.id }
                 accountLogs.map { accountLog ->
-                    val nftResponse = accountLog.nftId?.let { nftMap[it]?.let { nft -> toNftResponse(nft) } }
+                    val nftResponse = accountLog.nftId?.let { nftMap[it]?.let { it } }
                     accountLog.toResponse(nftResponse)
                 }
             }
     }
 
-    fun AccountLog.toResponse(nftResponse: NftResponse?): AccountLogResponse {
+    fun AccountLog.toResponse(nftResponse: NftMetadataResponse?): AccountLogResponse {
         return AccountLogResponse(
             nftResponse = if (this.transferType == TransferType.ERC20) null else nftResponse,
             timestamp = this.timestamp,
