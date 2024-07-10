@@ -90,7 +90,6 @@ class NftService(
 
         return Flux.fromIterable(nftsToAdd)
             .flatMap { nftResponse ->
-                println("data2?")
                 findOrCreateNft(nftResponse.id, nftResponse.tokenAddress, nftResponse.tokenId, nftResponse.chainType)
                     .flatMap {
                         walletNftRepository.save(

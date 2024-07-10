@@ -16,7 +16,7 @@ enum class ContractType{
         ERC721
 }
 
-enum class StatusType { ACTIVE, DEACTIVE }
+enum class StatusType { LISTING,AUCTION,NONE }
 enum class AccountType{ DEPOSIT, WITHDRAW }
 
 enum class TransferType {

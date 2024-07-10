@@ -73,5 +73,4 @@ object Util {
             chainType = nft.chainType
         )
     }
-
 }

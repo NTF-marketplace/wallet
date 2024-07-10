@@ -22,6 +22,12 @@ CREATE TYPE my_enum AS ENUM(
     'ORANGE', 'APPLE'
     );
 
+
+CREATE TYPE status_type AS ENUM(
+    'LISTING', 'AUCTION', 'NONE'
+    );
+
+
 CREATE TABLE IF NOT EXISTS test (
     id SERIAL PRIMARY KEY,
     type my_enum not null
@@ -74,7 +80,8 @@ CREATE TABLE IF NOT EXISTS account (
 CREATE TABLE IF NOT EXISTS account_nft (
     id SERIAL PRIMARY KEY,
     account_id BIGINT REFERENCES account(id),
-    nft_id BIGINT REFERENCES nft(id)
+    nft_id BIGINT REFERENCES nft(id),
+    status status_type not null
 );
 
 CREATE TABLE IF NOT EXISTS account_log (

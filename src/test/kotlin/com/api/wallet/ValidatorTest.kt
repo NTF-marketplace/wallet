@@ -1,17 +1,20 @@
 package com.api.wallet
 
 import com.api.wallet.controller.WalletController
+import com.api.wallet.controller.dto.request.DepositRequest
 import com.api.wallet.controller.dto.request.ValidateRequest
 import com.api.wallet.domain.TestRepository
 import com.api.wallet.domain.account.log.AccountLogRepository
 import com.api.wallet.domain.wallet.repository.WalletRepository
 import com.api.wallet.enums.AccountType
 import com.api.wallet.enums.ChainType
+import com.api.wallet.enums.MyEnum
 import com.api.wallet.enums.TransferType
 import com.api.wallet.rabbitMQ.dto.AdminTransferResponse
 import com.api.wallet.service.api.AccountService
 import com.api.wallet.service.api.NftService
 import com.api.wallet.service.api.WalletService
+import com.api.wallet.service.external.admin.AdminApiService
 import com.api.wallet.service.external.infura.InfuraApiService
 import com.api.wallet.service.external.moralis.MoralisApiService
 import com.api.wallet.validator.SignatureValidator
@@ -38,6 +41,7 @@ class ValidatorTest(
     @Autowired private val accountLogRepository: AccountLogRepository,
     @Autowired private val testRepository: TestRepository,
     @Autowired private val redisService: RedisService,
+    @Autowired private val adminApiService: AdminApiService,
 ) {
 
     @Test
@@ -178,5 +182,32 @@ class ValidatorTest(
         val res = redisService.getNft(3L).block()
         println(res.toString())
     }
+
+    @Test
+    fun testasd(){
+        val test = com.api.wallet.domain.Test(
+            null,
+            MyEnum.APPLE
+        )
+        testRepository.save(test).block()
+    }
+
+    @Test
+    fun depositTest() {
+        val req = DepositRequest(
+            chainType = ChainType.POLYGON_MAINNET,
+            transactionHash = "0xa7c770b9595177528c26f74ffe99d650cf8dd6a9345b14bb457d9348087588ab",
+            accountType = AccountType.DEPOSIT
+        )
+
+        accountService.depositProcess(
+            address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
+            request = req
+        ).block()
+
+        Thread.sleep(8000)
+    }
+
+
 
 }

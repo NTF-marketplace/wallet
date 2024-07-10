@@ -3,6 +3,7 @@ package com.api.wallet.config
 import com.api.wallet.enums.AccountType
 import com.api.wallet.enums.ChainType
 import com.api.wallet.enums.MyEnum
+import com.api.wallet.enums.StatusType
 import com.api.wallet.enums.TransferType
 import com.api.wallet.util.enumConvert.*
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration
@@ -38,6 +39,7 @@ class R2dbcConfig : AbstractR2dbcConfiguration(){
                     .withEnum("chain_type", ChainType::class.java)
                     .withEnum("account_type", AccountType::class.java)
                     .withEnum("transfer_type", TransferType::class.java)
+                    .withEnum("status_type", StatusType::class.java)
                     .build()
             )
             .build()
@@ -56,6 +58,8 @@ class R2dbcConfig : AbstractR2dbcConfiguration(){
         converters.add((StringToEnumConverter(AccountType::class.java)))
         converters.add(TransferTypeConvert(TransferType::class.java))
         converters.add((StringToEnumConverter(TransferType::class.java)))
+        converters.add(StatusTypeConvert(StatusType::class.java))
+        converters.add((StringToEnumConverter(StatusType::class.java)))
         return R2dbcCustomConversions(storeConversions, converters)
     }
 

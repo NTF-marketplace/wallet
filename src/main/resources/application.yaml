@@ -45,5 +45,7 @@ auth:
   uri: "http://localhost:8081/v1/auth"
 nft:
   uri: "http://localhost:8082/v1/nft"
+admin:
+  uri: "http://localhost:8084/v1/admin"
 server:
   port: 8083

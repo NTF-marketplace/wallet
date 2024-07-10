@@ -1,6 +1,7 @@
 package com.api.wallet.rabbitMQ
 
 import com.api.wallet.rabbitMQ.dto.AdminTransferResponse
+import com.api.wallet.rabbitMQ.dto.ListingResponse
 import com.api.wallet.service.api.AccountService
 import com.api.wallet.service.api.NftService
 import com.api.wallet.service.external.nft.dto.NftResponse
@@ -25,6 +26,11 @@ class MessageReceiver(
         println("data1??")
         nftService.save(nft)
             .subscribe()
+    }
+
+    @RabbitListener(queues = ["listingQueue"])
+    fun listingMessage(listing: ListingResponse){
+        // nftListingService.update(listing).subscribe()
     }
 
 }

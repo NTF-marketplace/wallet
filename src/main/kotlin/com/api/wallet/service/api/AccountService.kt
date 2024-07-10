@@ -1,6 +1,7 @@
 package com.api.wallet.service.api
 
 import com.api.wallet.RedisService
+import com.api.wallet.controller.dto.request.DepositRequest
 import com.api.wallet.controller.dto.response.AccountResponse
 import com.api.wallet.controller.dto.response.AccountResponse.Companion.toResponse
 import com.api.wallet.controller.dto.response.NftMetadataResponse
@@ -16,15 +17,15 @@ import com.api.wallet.enums.TransferType
 import com.api.wallet.event.AccountEvent
 import com.api.wallet.event.AccountNftEvent
 import com.api.wallet.rabbitMQ.dto.AdminTransferResponse
-import com.api.wallet.service.external.nft.dto.NftResponse
+import com.api.wallet.service.external.admin.AdminApiService
 import com.api.wallet.storage.PriceStorage
-import com.api.wallet.util.Util.toNftResponse
 import com.api.wallet.util.Util.toPagedMono
 import com.api.wallet.util.Util.toTokenType
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -41,7 +42,16 @@ class AccountService(
     private val accountNftRepository: AccountNftRepository,
     private val priceStorage: PriceStorage,
     private val redisService: RedisService,
+    private val adminApiService: AdminApiService,
     ) {
+
+
+    // fun findByAccountsByAddress(nftId: Long ,address:String) : Flux<AccountResponse> {
+    //     return findAllAccountByAddress(address, chainType)
+    //         .flatMap { account ->
+    //             accountNftRepository.findByAccountId(account.id!!)
+    //         }
+    // }
 
     fun findByAccountsByAddress(address:String) : Flux<AccountResponse> {
         return walletRepository.findAllByAddress(address)
@@ -59,20 +69,6 @@ class AccountService(
             }
     }
 
-    // fun findByAccountNftByAddress(address: String, chainType: ChainType?, pageable: Pageable): Mono<Page<NftResponse>> {
-    //     return findAllAccountByAddress(address, chainType)
-    //         .flatMap { account ->
-    //             accountNftRepository.findByAccountId(account.id!!)
-    //         }
-    //         .map { it.nftId }
-    //         .collectList()
-    //         .flatMap { nftIds ->
-    //             nftRepository.findAllByIdIn(nftIds)
-    //                 .map { nft -> toNftResponse(nft) }
-    //                 .let { toPagedMono(it,pageable) }
-    //         }
-    // }
-
     fun findByAccountNftByAddress(address: String, chainType: ChainType?, pageable: Pageable): Mono<Page<NftMetadataResponse>> {
         return findAllAccountByAddress(address, chainType)
             .flatMap { account ->
@@ -84,9 +80,6 @@ class AccountService(
                 toPagedMono(redisService.getNfts(nftIds),pageable)
             }
     }
-
-
-
 
     fun findAllAccountByAddress(address: String, chainType: ChainType?): Flux<Account> {
         return walletService.findWallet(address,chainType)
@@ -158,4 +151,9 @@ class AccountService(
             }
             .then()
     }
+
+    fun depositProcess(address: String , request: DepositRequest): Mono<ResponseEntity<Void>>{
+        return adminApiService.createDeposit(address,request)
+    }
+
 }

@@ -86,6 +86,7 @@ class AccountLogService(
         )
     }
     fun saveAccountLog(event: AccountEvent,transferType: TransferType) : Mono<Void> {
+        println("orange")
         val accountLog = AccountLog(
             id = null,
             accountId = event.account.id!!,
