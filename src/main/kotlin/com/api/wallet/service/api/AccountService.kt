@@ -2,6 +2,8 @@ package com.api.wallet.service.api
 
 import com.api.wallet.RedisService
 import com.api.wallet.controller.dto.request.DepositRequest
+import com.api.wallet.controller.dto.request.WithdrawERC20Request
+import com.api.wallet.controller.dto.request.WithdrawERC721Request
 import com.api.wallet.controller.dto.response.AccountResponse
 import com.api.wallet.controller.dto.response.AccountResponse.Companion.toResponse
 import com.api.wallet.controller.dto.response.NftMetadataResponse
@@ -154,6 +156,16 @@ class AccountService(
 
     fun depositProcess(address: String , request: DepositRequest): Mono<ResponseEntity<Void>>{
         return adminApiService.createDeposit(address,request)
+    }
+
+    fun withdrawERC20Process(address: String, request: WithdrawERC20Request) {
+
+
+    }
+
+    fun withdrawERC721Process(address: String, request: WithdrawERC721Request) {
+
+
     }
 
 }
