@@ -27,6 +27,7 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -158,15 +159,24 @@ class AccountService(
         return adminApiService.createDeposit(address,request)
     }
 
-    fun withdrawERC20Process(address: String, request: WithdrawERC20Request) {
-
-
+    fun withdrawERC20Process(address: String, request: WithdrawERC20Request): Mono<ResponseEntity<Void>> {
+        return adminApiService.withdrawERC20(address,request)
     }
 
-    fun withdrawERC721Process(address: String, request: WithdrawERC721Request) {
-        // 해당 nft 네트워크 체크
-
-
+    fun withdrawERC721Process(address: String, request: WithdrawERC721Request): Mono<ResponseEntity<Void>> {
+        // 아 굳이 wallet을 체크할 이유가 있을까?
+        // 서비스에 wallet을 등록 안해놨을수도있잖아.
+        return nftRepository.findById(request.nftId)
+            .flatMap { nft ->
+                walletRepository.findByAddressAndChainType(address, nft.chainType)
+                    .flatMap { wallet ->
+                        adminApiService.withdrawERC721(address, request)
+                    }
+                    .map { ResponseEntity<Void>(HttpStatus.OK) }
+                    .switchIfEmpty(Mono.just(ResponseEntity<Void>(HttpStatus.BAD_REQUEST)))
+            }
+//            .switchIfEmpty(Mono.just(ResponseEntity<Void>(HttpStatus.NOT_FOUND)))
     }
+
 
 }

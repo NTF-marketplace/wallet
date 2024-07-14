@@ -3,6 +3,7 @@ package com.api.wallet
 import com.api.wallet.controller.WalletController
 import com.api.wallet.controller.dto.request.DepositRequest
 import com.api.wallet.controller.dto.request.ValidateRequest
+import com.api.wallet.controller.dto.request.WithdrawERC20Request
 import com.api.wallet.domain.TestRepository
 import com.api.wallet.domain.account.log.AccountLogRepository
 import com.api.wallet.domain.wallet.repository.WalletRepository
@@ -25,6 +26,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.domain.PageRequest
 import reactor.test.StepVerifier
 import java.math.BigDecimal
+import java.math.BigInteger
 import java.time.Instant
 
 @SpringBootTest
@@ -205,6 +207,21 @@ class ValidatorTest(
         ).block()
 
         Thread.sleep(8000)
+    }
+
+
+    @Test
+    fun withdrawERC20(){
+        val req = WithdrawERC20Request(
+            chainType = ChainType.POLYGON_AMOY,
+            amount = BigDecimal("0.5")
+        )
+
+        accountService.withdrawERC20Process(address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867" , req)
+            .block()
+
+        Thread.sleep(5000)
+
     }
 
 
