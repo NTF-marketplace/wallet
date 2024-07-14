@@ -40,7 +40,6 @@ class NftService(
             .switchIfEmpty(
                 nftApiService.getNftSave(
                     NftRequest(
-                        nftId,
                         tokenAddress,
                         tokenId,
                         chainType

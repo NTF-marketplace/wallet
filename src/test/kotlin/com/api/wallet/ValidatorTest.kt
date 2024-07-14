@@ -196,8 +196,7 @@ class ValidatorTest(
     fun depositTest() {
         val req = DepositRequest(
             chainType = ChainType.POLYGON_MAINNET,
-            transactionHash = "0xa7c770b9595177528c26f74ffe99d650cf8dd6a9345b14bb457d9348087588ab",
-            accountType = AccountType.DEPOSIT
+            transactionHash = "0xa7c770b9595177528c26f74ffe99d650cf8dd6a9345b14bb457d9348087588ab"
         )
 
         accountService.depositProcess(

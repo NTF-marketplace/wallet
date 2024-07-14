@@ -67,7 +67,7 @@ class AccountService(
         return accountRepository.findByWalletId(wallet.id!!)
             .map { account ->
                 val usdt = priceStorage.get(wallet.chainType.toTokenType())
-                account.toResponse(usdt)
+                account.toResponse(usdt,wallet.chainType)
             }
     }
 
@@ -164,6 +164,7 @@ class AccountService(
     }
 
     fun withdrawERC721Process(address: String, request: WithdrawERC721Request) {
+        // 해당 nft 네트워크 체크
 
 
     }
