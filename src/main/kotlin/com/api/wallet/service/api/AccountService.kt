@@ -160,12 +160,14 @@ class AccountService(
     }
 
     fun withdrawERC20Process(address: String, request: WithdrawERC20Request): Mono<ResponseEntity<Void>> {
+        //account에 해당 amount가 있는지 체크하고주는게 맞는거같음
         return adminApiService.withdrawERC20(address,request)
     }
 
     fun withdrawERC721Process(address: String, request: WithdrawERC721Request): Mono<ResponseEntity<Void>> {
         // 아 굳이 wallet을 체크할 이유가 있을까?
         // 서비스에 wallet을 등록 안해놨을수도있잖아.
+        // 그리고 account에 해당 nft 가 있는지 유효성 체크하고 주는게 맞는거같음
         return nftRepository.findById(request.nftId)
             .flatMap { nft ->
                 walletRepository.findByAddressAndChainType(address, nft.chainType)
@@ -173,6 +175,7 @@ class AccountService(
                         adminApiService.withdrawERC721(address, request)
                     }
                     .map { ResponseEntity<Void>(HttpStatus.OK) }
+                    // 해당 월렛이 있는지 확인하는걸 해줘야될거같은데..
                     .switchIfEmpty(Mono.just(ResponseEntity<Void>(HttpStatus.BAD_REQUEST)))
             }
 //            .switchIfEmpty(Mono.just(ResponseEntity<Void>(HttpStatus.NOT_FOUND)))
