@@ -85,15 +85,14 @@ class AccountLogService(
             balance = if (this.transferType == TransferType.ERC721) BigDecimal.ZERO else this.balance ?: BigDecimal.ZERO
         )
     }
-    fun saveAccountLog(event: AccountEvent,transferType: TransferType) : Mono<Void> {
-        println("orange")
+    fun saveAccountLog(event: AccountEvent,transferType: TransferType,balance: BigDecimal) : Mono<Void> {
         val accountLog = AccountLog(
             id = null,
             accountId = event.account.id!!,
             nftId = null,
             accountType = event.accountType,
             timestamp = event.timestamp,
-            balance = event.account.balance,
+            balance = balance,
             transferType = transferType
         )
         return accountLogRepository.save(accountLog).then()

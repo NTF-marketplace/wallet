@@ -14,7 +14,7 @@ class MessageReceiver(
     private val nftService: NftService,
 ) {
     @RabbitListener(queues = ["transferQueue"])
-    fun depositMessage(transfer: AdminTransferResponse) {
+    fun transferMessage(transfer: AdminTransferResponse) {
         accountService.saveAccount(transfer)
             .doOnSuccess { println("Account successfully saved") }
             .doOnError { error -> println("Error occurred: ${error.message}") }
@@ -23,7 +23,6 @@ class MessageReceiver(
 
     @RabbitListener(queues = ["nftQueue"])
     fun nftMessage(nft: NftResponse) {
-        println("data1??")
         nftService.save(nft)
             .subscribe()
     }

@@ -12,7 +12,15 @@ data class Account(
     var balance: BigDecimal = BigDecimal.ZERO,
 ) {
 
-    fun updateBalance(newBalance: BigDecimal): Account {
-        return this.copy(balance = newBalance)
+    // fun updateBalance(newBalance: BigDecimal): Account {
+    //     return this.copy(balance = newBalance)
+    // }
+
+    fun deposit(amount: BigDecimal): Account {
+        return this.copy(balance = this.balance.add(amount))
+    }
+
+    fun withdraw(amount: BigDecimal): Account {
+        return this.copy(balance = this.balance.subtract(amount))
     }
 }
