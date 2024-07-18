@@ -5,7 +5,6 @@ import com.api.wallet.controller.dto.response.WalletAccountResponse
 import com.api.wallet.enums.ChainType
 import com.api.wallet.service.api.NftService
 import com.api.wallet.service.api.WalletService
-import com.api.wallet.service.external.nft.dto.NftResponse
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault

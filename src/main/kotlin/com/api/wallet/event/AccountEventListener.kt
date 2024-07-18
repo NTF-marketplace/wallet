@@ -12,7 +12,7 @@ class AccountEventListener(
 ) {
     @EventListener
     fun handleAccountEvent(event: AccountEvent): Mono<Void> {
-        return accountLogService.saveAccountLog(event,TransferType.ERC20)
+        return accountLogService.saveAccountLog(event,TransferType.ERC20, balance = event.balance)
     }
 
     @EventListener

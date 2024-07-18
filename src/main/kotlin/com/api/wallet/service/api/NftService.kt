@@ -8,6 +8,7 @@ import com.api.wallet.domain.wallet.Wallet
 import com.api.wallet.domain.walletNft.WalletNft
 import com.api.wallet.domain.walletNft.repository.WalletNftRepository
 import com.api.wallet.enums.ChainType
+import com.api.wallet.service.ErrorHandlerService
 import com.api.wallet.service.external.nft.NftApiService
 import com.api.wallet.service.external.nft.dto.NftRequest
 import com.api.wallet.service.external.nft.dto.NftResponse
@@ -18,6 +19,8 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
+import java.util.concurrent.Executors
 
 @Service
 class NftService(
@@ -26,7 +29,10 @@ class NftService(
     private val nftApiService: NftApiService,
     private val walletService: WalletService,
     private val redisService: RedisService,
+    // private val errorHandlerService: ErrorHandlerService,
 ) {
+
+    private val virtualThreadScheduler = Schedulers.fromExecutor(Executors.newVirtualThreadPerTaskExecutor())
 
     fun save(response: NftResponse): Mono<Void> {
         return nftRepository.findById(response.id)
@@ -65,18 +71,22 @@ class NftService(
 
 
     private fun getNftByWallet(wallet: Wallet): Flux<NftResponse> {
-        val response = nftApiService.getByWalletNft(wallet.address, wallet.chainType)
-        val walletNfts = walletNftRepository.findByWalletIdJoinNft(wallet.address,wallet.chainType)
+        val responseFlux = nftApiService.getByWalletNft(wallet.address, wallet.chainType)
+            .subscribeOn(virtualThreadScheduler)
 
-        return response.collectList().flatMapMany { responseList ->
+        val walletNftsFlux = walletNftRepository.findByWalletIdJoinNft(wallet.address, wallet.chainType)
+            .subscribeOn(virtualThreadScheduler)
+
+        return Flux.zip(responseFlux.collectList(), walletNftsFlux.collectList()).flatMap { tuple ->
+            val responseList = tuple.t1
+            val walletNftList = tuple.t2
+
             val responseIds = responseList.map { it.id }
-            walletNfts.collectList().flatMapMany { walletNftList ->
-                val currentNftIds = walletNftList.map { it.nftId }
+            val currentNftIds = walletNftList.map { it.nftId }
 
-                deleteToWalletNft(responseIds, currentNftIds, wallet)
-                    .thenMany(addToWalletNft(responseList, currentNftIds, wallet))
-                    .thenMany(Flux.fromIterable(responseList))
-            }
+            deleteToWalletNft(responseIds, currentNftIds, wallet)
+                .thenMany(addToWalletNft(responseList, currentNftIds, wallet))
+                .thenMany(Flux.fromIterable(responseList))
         }
     }
 

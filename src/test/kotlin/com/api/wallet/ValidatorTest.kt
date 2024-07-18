@@ -214,7 +214,7 @@ class ValidatorTest(
     @Test
     fun withdrawERC20(){
         val req = WithdrawERC20Request(
-            chainType = ChainType.POLYGON_MAINNET,
+            chainType = ChainType.POLYGON_AMOY,
             amount = BigDecimal("1")
         )
 

@@ -52,14 +52,6 @@ class AccountService(
     private val adminApiService: AdminApiService,
     ) {
 
-
-    // fun findByAccountsByAddress(nftId: Long ,address:String) : Flux<AccountResponse> {
-    //     return findAllAccountByAddress(address, chainType)
-    //         .flatMap { account ->
-    //             accountNftRepository.findByAccountId(account.id!!)
-    //         }
-    // }
-
     fun findByAccountsByAddress(address:String) : Flux<AccountResponse> {
         return walletRepository.findAllByAddress(address)
             .flatMap { findByAccountByWallet(it) }
@@ -180,16 +172,17 @@ class AccountService(
     }
 
 
+    // 상태처리
     fun depositProcess(address: String , request: DepositRequest): Mono<ResponseEntity<Void>>{
         return adminApiService.createDeposit(address,request)
     }
 
-    @Transactional
+    // 가스비를 클라이언트가 요청하는건 어떨까?
+    // 상태처리
     fun withdrawERC20Process(address: String, request: WithdrawERC20Request): Mono<ResponseEntity<Void>> {
-        // 가스비를 클라이언트로 받는게 어떤가?
         return walletRepository.findByAddressAndChainType(address, request.chainType)
             .flatMap { wallet ->
-                accountRepository.findByWalletId(wallet.id!!)
+                findByAccountOrCreate(wallet)
             }
             .flatMap { account ->
                 if (account.balance >= request.amount) {
@@ -208,6 +201,7 @@ class AccountService(
     }
 
 
+    //상태처리
     fun withdrawERC721Process(address: String, request: WithdrawERC721Request): Mono<ResponseEntity<Void>> {
         return accountNftRepository.findByNftIdAndWalletAddressAndChainType(request.nftId, address)
             .switchIfEmpty(Mono.error(InsufficientResourcesException("NFT not found for account")))

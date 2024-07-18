@@ -10,8 +10,6 @@ import com.api.wallet.enums.AccountType
 import com.api.wallet.enums.TransferType
 import com.api.wallet.event.AccountEvent
 import com.api.wallet.event.AccountNftEvent
-import com.api.wallet.service.external.nft.dto.NftResponse
-import com.api.wallet.util.Util.toNftResponse
 import com.api.wallet.util.Util.toPage
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
