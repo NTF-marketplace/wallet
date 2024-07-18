@@ -26,6 +26,9 @@ class RedisService(
     }
 
     fun getNfts(nftIds: List<Long>): Flux<NftMetadataResponse> {
+        if (nftIds.isEmpty()) {
+            return Flux.empty()
+        }
         val keys = nftIds.map { "NFT:$it" }
         return reactiveRedisTemplate.opsForValue().multiGet(keys)
             .flatMapMany { list ->

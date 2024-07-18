@@ -2,6 +2,8 @@ package com.api.wallet.controller
 
 import com.api.wallet.controller.dto.request.DepositRequest
 import com.api.wallet.controller.dto.request.ValidateRequest
+import com.api.wallet.controller.dto.request.WithdrawERC20Request
+import com.api.wallet.controller.dto.request.WithdrawERC721Request
 import com.api.wallet.controller.dto.response.AccountLogResponse
 import com.api.wallet.controller.dto.response.AccountResponse
 import com.api.wallet.controller.dto.response.NftMetadataResponse
@@ -13,11 +15,13 @@ import com.api.wallet.service.external.nft.dto.NftResponse
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -28,26 +32,6 @@ class AccountController(
     private val accountService: AccountService,
     private val accountLogService: AccountLogService,
 ) {
-
-    // @GetMapping("/exist/nft")
-    // fun existedAccountNft(
-    //     @RequestParam nftId: Long,
-    //     @RequestParam address: String,
-    // ) {
-    //     accountService.
-    // }
-
-
-    // @PostMapping("/deposit")
-    // fun depositAccount(
-    //     // @RequestParam address: String,
-    //     @RequestBody request: DepositRequest
-    // ) {
-    //     //address는 따로 spring 시큐리티에서 토큰에 있는 값으로 꺼내올거임
-    //     accountService.depositProcess()
-    // }
-
-
     @GetMapping("/nft")
     fun getAccountNft(
         @RequestParam address: String,
@@ -71,6 +55,32 @@ class AccountController(
         @PageableDefault(size = 50) pageable: Pageable,
     ): Mono<Page<AccountLogResponse>> {
         return accountLogService.findAllByAccountLog(address,accountType,pageable)
+    }
+
+
+    @PostMapping("/deposit")
+    fun depositAccount(
+        @RequestParam address: String,
+        @RequestBody request: DepositRequest,
+    ): Mono<ResponseEntity<Void>> {
+        return accountService.depositProcess(address,request)
+    }
+
+
+    @PostMapping("/withdraw/ERC20")
+    fun withdrawERC20Account(
+        @RequestParam address: String,
+        @RequestBody request: WithdrawERC20Request,
+    ): Mono<ResponseEntity<Void>> {
+        return accountService.withdrawERC20Process(address,request)
+    }
+
+    @PostMapping("/withdraw/ERC721")
+    fun withdrawERC721Account(
+        @RequestParam address: String,
+        @RequestBody request: WithdrawERC721Request,
+    ): Mono<ResponseEntity<Void>> {
+        return accountService.withdrawERC721Process(address,request)
     }
 
 }

@@ -3,6 +3,8 @@ package com.api.wallet
 import com.api.wallet.controller.WalletController
 import com.api.wallet.controller.dto.request.DepositRequest
 import com.api.wallet.controller.dto.request.ValidateRequest
+import com.api.wallet.controller.dto.request.WithdrawERC20Request
+import com.api.wallet.controller.dto.request.WithdrawERC721Request
 import com.api.wallet.domain.TestRepository
 import com.api.wallet.domain.account.log.AccountLogRepository
 import com.api.wallet.domain.wallet.repository.WalletRepository
@@ -25,6 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.domain.PageRequest
 import reactor.test.StepVerifier
 import java.math.BigDecimal
+import java.math.BigInteger
 import java.time.Instant
 
 @SpringBootTest
@@ -196,8 +199,7 @@ class ValidatorTest(
     fun depositTest() {
         val req = DepositRequest(
             chainType = ChainType.POLYGON_MAINNET,
-            transactionHash = "0xa7c770b9595177528c26f74ffe99d650cf8dd6a9345b14bb457d9348087588ab",
-            accountType = AccountType.DEPOSIT
+            transactionHash = "0x21b77e341d43a1b58f5a40c648e4878e532ec1011efcec3fe82a7e23d35c5b2f"
         )
 
         accountService.depositProcess(
@@ -208,6 +210,33 @@ class ValidatorTest(
         Thread.sleep(8000)
     }
 
+
+    @Test
+    fun withdrawERC20(){
+        val req = WithdrawERC20Request(
+            chainType = ChainType.POLYGON_AMOY,
+            amount = BigDecimal("1")
+        )
+
+        accountService.withdrawERC20Process(address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867" , req)
+            .block()
+
+        Thread.sleep(5000)
+
+    }
+
+
+    @Test
+    fun withdrawERC721(){
+        val req = WithdrawERC721Request(
+            nftId = 15L
+        )
+        accountService.withdrawERC721Process(address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867" , req)
+            .block()
+
+        Thread.sleep(8000)
+
+    }
 
 
 }

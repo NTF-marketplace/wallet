@@ -1,8 +1,9 @@
 package com.api.wallet.controller.dto.request
 
 import com.api.wallet.enums.ChainType
+import java.math.BigDecimal
 
-data class DepositRequest(
+data class WithdrawERC20Request(
     val chainType: ChainType,
-    val transactionHash: String,
+    val amount: BigDecimal,
 )

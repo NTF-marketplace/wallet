@@ -10,8 +10,6 @@ import com.api.wallet.enums.AccountType
 import com.api.wallet.enums.TransferType
 import com.api.wallet.event.AccountEvent
 import com.api.wallet.event.AccountNftEvent
-import com.api.wallet.service.external.nft.dto.NftResponse
-import com.api.wallet.util.Util.toNftResponse
 import com.api.wallet.util.Util.toPage
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -85,15 +83,14 @@ class AccountLogService(
             balance = if (this.transferType == TransferType.ERC721) BigDecimal.ZERO else this.balance ?: BigDecimal.ZERO
         )
     }
-    fun saveAccountLog(event: AccountEvent,transferType: TransferType) : Mono<Void> {
-        println("orange")
+    fun saveAccountLog(event: AccountEvent,transferType: TransferType,balance: BigDecimal) : Mono<Void> {
         val accountLog = AccountLog(
             id = null,
             accountId = event.account.id!!,
             nftId = null,
             accountType = event.accountType,
             timestamp = event.timestamp,
-            balance = event.account.balance,
+            balance = balance,
             transferType = transferType
         )
         return accountLogRepository.save(accountLog).then()
