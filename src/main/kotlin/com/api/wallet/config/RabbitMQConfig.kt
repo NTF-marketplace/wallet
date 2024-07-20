@@ -49,4 +49,13 @@ class RabbitMQConfig {
     @Bean
     fun bindingNftQueue(nftQueue: Queue, nftExchange: DirectExchange) = createBinding(nftQueue, nftExchange, "nftRoutingKey")
 
+
+    @Bean
+    fun listingQueue() = createQueue("listingQueue")
+
+    @Bean
+    fun listingExchange() = createExchange("listingExchange")
+
+    @Bean
+    fun bindingListingQueue(listingQueue: Queue, listingExchange: DirectExchange) = createBinding(listingQueue, listingExchange, "listingRoutingKey")
 }
