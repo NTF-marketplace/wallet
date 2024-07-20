@@ -11,7 +11,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice
 import reactor.core.publisher.Mono
 
 // TODO(이걸 api 게이트웨이에서 처리하면 어떨까?)
-@ControllerAdvice(annotations = [RestController::class])
+//@ControllerAdvice(annotations = [RestController::class])
 class GlobalResponseHandler: ResponseBodyAdvice<Any> {
     override fun supports(returnType: MethodParameter, converterType: Class<out HttpMessageConverter<*>>): Boolean {
         return true

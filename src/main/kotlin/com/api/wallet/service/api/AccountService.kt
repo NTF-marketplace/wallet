@@ -16,10 +16,12 @@ import com.api.wallet.domain.wallet.Wallet
 import com.api.wallet.domain.wallet.repository.WalletRepository
 import com.api.wallet.enums.AccountType
 import com.api.wallet.enums.ChainType
+import com.api.wallet.enums.StatusType
 import com.api.wallet.enums.TransferType
 import com.api.wallet.event.AccountEvent
 import com.api.wallet.event.AccountNftEvent
 import com.api.wallet.rabbitMQ.dto.AdminTransferResponse
+import com.api.wallet.rabbitMQ.dto.ListingResponse
 import com.api.wallet.service.external.admin.AdminApiService
 import com.api.wallet.storage.PriceStorage
 import com.api.wallet.util.Util.toPagedMono
@@ -51,6 +53,14 @@ class AccountService(
     private val redisService: RedisService,
     private val adminApiService: AdminApiService,
     ) {
+
+    fun hasAccountNftByNftId(address: String, nftId: Long): Mono<Boolean> {
+        return accountNftRepository.findByNftIdAndWalletAddressAndChainType(nftId, address)
+            .flatMap {
+                Mono.just(true)
+            }
+            .switchIfEmpty(Mono.just(false))
+    }
 
     fun findByAccountsByAddress(address:String) : Flux<AccountResponse> {
         return walletRepository.findAllByAddress(address)
@@ -171,7 +181,6 @@ class AccountService(
             .then()
     }
 
-
     // 상태처리
     fun depositProcess(address: String , request: DepositRequest): Mono<ResponseEntity<Void>>{
         return adminApiService.createDeposit(address,request)
@@ -218,5 +227,12 @@ class AccountService(
     }
 
 
-
+    fun updateListing(newListing: ListingResponse): Mono<Void> {
+        return accountNftRepository.findByNftIdAndWalletAddressAndChainType(newListing.nftId, newListing.address)
+            .flatMap { accountNft ->
+                val updatedStatus = if (newListing.active) StatusType.LISTING else StatusType.NONE
+                val updatedAccountNft = accountNft.update(updatedStatus)
+                accountNftRepository.save(updatedAccountNft)
+            }.then()
+    }
 }

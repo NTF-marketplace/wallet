@@ -41,6 +41,14 @@ class AccountController(
         return accountService.findByAccountNftByAddress(address,chainType,pageable)
     }
 
+    @GetMapping("/has/nft")
+    fun hasAccountNftByNft(
+        @RequestParam address: String,
+        @RequestParam nftId: Long,
+    ): Mono<Boolean> {
+        return accountService.hasAccountNftByNftId(address, nftId)
+    }
+
     @GetMapping
     fun getAccount(
         @RequestParam address: String,

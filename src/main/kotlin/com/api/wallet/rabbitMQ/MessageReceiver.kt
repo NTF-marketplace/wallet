@@ -29,7 +29,9 @@ class MessageReceiver(
 
     @RabbitListener(queues = ["listingQueue"])
     fun listingMessage(listing: ListingResponse){
-        // nftListingService.update(listing).subscribe()
+        println("몇번들어오는지 체크할게요")
+        println("active : " + listing.active)
+        accountService.updateListing(listing).subscribe()
     }
 
 }
