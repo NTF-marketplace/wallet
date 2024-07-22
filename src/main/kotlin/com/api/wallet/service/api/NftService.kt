@@ -13,6 +13,7 @@ import com.api.wallet.service.external.nft.dto.NftRequest
 import com.api.wallet.service.external.nft.dto.NftResponse
 import com.api.wallet.service.external.nft.dto.NftResponse.Companion.toEntity
 import com.api.wallet.util.Util.toPagedMono
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -32,12 +33,23 @@ class NftService(
 
     private val virtualThreadScheduler = Schedulers.fromExecutor(Executors.newVirtualThreadPerTaskExecutor())
 
+
     fun save(response: NftResponse): Mono<Void> {
         return nftRepository.findById(response.id)
-            .switchIfEmpty(
-                nftRepository.insert(response.toEntity())
-            ).then()
+            .hasElement()
+            .flatMap { exists ->
+                if (!exists) {
+                    nftRepository.insert(response.toEntity())
+                        .onErrorResume(DuplicateKeyException::class.java) {
+                            Mono.empty()
+                        }
+                        .then()
+                } else {
+                    Mono.empty()
+                }
+            }
     }
+
 
     fun findOrCreateNft(nftId: Long, tokenAddress: String, tokenId: String, chainType: ChainType): Mono<Nft> {
         return nftRepository.findById(nftId)
@@ -49,7 +61,11 @@ class NftService(
                         chainType
                     )
                 ).flatMap {
-                    nftRepository.insert(it.toEntity()) }
+                    nftRepository.insert(it.toEntity())
+                        .onErrorResume(DuplicateKeyException::class.java) {
+                            Mono.empty()
+                        }
+                }
             )
     }
 
