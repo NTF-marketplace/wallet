@@ -19,43 +19,22 @@ class RabbitMQConfig {
         return template
     }
 
-    private fun createQueue(name: String, durable: Boolean = true): Queue {
-        return Queue(name, durable)
-    }
-
-    private fun createExchange(name: String): DirectExchange {
-        return DirectExchange(name)
-    }
-
-    private fun createBinding(queue: Queue, exchange: DirectExchange, routingKey: String): Binding {
-        return BindingBuilder.bind(queue).to(exchange).with(routingKey)
+    private fun createFanoutExchange(name: String): FanoutExchange {
+        return FanoutExchange(name)
     }
 
     @Bean
-    fun transferQueue() = createQueue("transferQueue")
+    fun transferExchange() = createFanoutExchange("transferExchange")
 
     @Bean
-    fun transferExchange() = createExchange("transferExchange")
-
-    @Bean
-    fun bindingTransferQueue(transferQueue: Queue, transferExchange: DirectExchange) = createBinding(transferQueue, transferExchange, "transferRoutingKey")
-
-    @Bean
-    fun nftQueue() = createQueue("nftQueue")
-
-    @Bean
-    fun nftExchange() = createExchange("nftExchange")
-
-    @Bean
-    fun bindingNftQueue(nftQueue: Queue, nftExchange: DirectExchange) = createBinding(nftQueue, nftExchange, "nftRoutingKey")
+    fun nftExchange() = createFanoutExchange("nftExchange")
 
 
     @Bean
-    fun listingQueue() = createQueue("listingQueue")
+    fun listingExchange() = createFanoutExchange("listingExchange")
 
     @Bean
-    fun listingExchange() = createExchange("listingExchange")
+    fun listingCancelExchange() = createFanoutExchange("listingCancelExchange")
 
-    @Bean
-    fun bindingListingQueue(listingQueue: Queue, listingExchange: DirectExchange) = createBinding(listingQueue, listingExchange, "listingRoutingKey")
+
 }
