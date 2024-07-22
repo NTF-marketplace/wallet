@@ -8,7 +8,6 @@ import com.api.wallet.domain.wallet.Wallet
 import com.api.wallet.domain.walletNft.WalletNft
 import com.api.wallet.domain.walletNft.repository.WalletNftRepository
 import com.api.wallet.enums.ChainType
-import com.api.wallet.service.ErrorHandlerService
 import com.api.wallet.service.external.nft.NftApiService
 import com.api.wallet.service.external.nft.dto.NftRequest
 import com.api.wallet.service.external.nft.dto.NftResponse
@@ -29,7 +28,6 @@ class NftService(
     private val nftApiService: NftApiService,
     private val walletService: WalletService,
     private val redisService: RedisService,
-    // private val errorHandlerService: ErrorHandlerService,
 ) {
 
     private val virtualThreadScheduler = Schedulers.fromExecutor(Executors.newVirtualThreadPerTaskExecutor())
