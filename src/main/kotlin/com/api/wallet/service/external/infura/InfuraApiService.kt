@@ -1,6 +1,7 @@
 package com.api.wallet.service.external.infura
 
 import com.api.wallet.enums.ChainType
+import com.api.wallet.properties.api.key.ApiKeysProperties
 import com.api.wallet.service.external.infura.dto.request.InfuraRequest
 import com.api.wallet.service.external.infura.dto.response.InfuraResponse
 import com.api.wallet.service.external.infura.dto.response.InfuraResponse.Companion.toBigDecimal
@@ -13,8 +14,9 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 @Service
-//TODO("infura apiKey properties에 저장 gitignore)
-class InfuraApiService {
+class InfuraApiService(
+    private val apiKeysProperties: ApiKeysProperties,
+) {
 
     private fun urlByChain(chainType: ChainType) : WebClient {
         val baseUrl = when (chainType) {
@@ -37,7 +39,7 @@ class InfuraApiService {
         val webClient = urlByChain(chainType)
 
         return webClient.post()
-            .uri("/v3/$apiKey")
+            .uri("/v3/${apiKeysProperties.infura}")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(requestBody)
             .retrieve()
@@ -50,14 +52,12 @@ class InfuraApiService {
         val requestBody = InfuraRequest(method = "eth_getBalance", params = listOf(walletAddress,"latest"))
 
         return webClient.post()
-            .uri("/v3/$apiKey")
+            .uri("/v3/${apiKeysProperties.infura}")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(requestBody)
             .retrieve()
             .bodyToMono(InfuraResponse::class.java)
             .mapNotNull { it.toBigDecimal() }
     }
-    companion object{
-        private val apiKey = "98b672d2ce9a4089a3a5cb5081dde2fa"
-    }
+
 }
