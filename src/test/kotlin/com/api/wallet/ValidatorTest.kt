@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.domain.PageRequest
+import org.springframework.test.context.ActiveProfiles
 import reactor.test.StepVerifier
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -32,6 +33,7 @@ import java.time.Instant
 
 @SpringBootTest
 //TODO("service 나눠서 작성")
+@ActiveProfiles("local")
 class ValidatorTest(
     @Autowired private val signatureValidator: SignatureValidator,
     @Autowired private val infuraApiService: InfuraApiService,
@@ -235,6 +237,13 @@ class ValidatorTest(
             .block()
 
         Thread.sleep(8000)
+
+    }
+
+    @Test
+    fun configTest(){
+        val res = accountLogRepository.findById(4).block()
+        println("res : " + res.toString())
 
     }
 
