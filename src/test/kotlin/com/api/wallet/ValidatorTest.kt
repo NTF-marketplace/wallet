@@ -18,7 +18,6 @@ import com.api.wallet.service.api.NftService
 import com.api.wallet.service.api.WalletService
 import com.api.wallet.service.external.admin.AdminApiService
 import com.api.wallet.service.external.infura.InfuraApiService
-import com.api.wallet.service.external.moralis.MoralisApiService
 import com.api.wallet.validator.SignatureValidator
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -37,7 +36,6 @@ import java.time.Instant
 class ValidatorTest(
     @Autowired private val signatureValidator: SignatureValidator,
     @Autowired private val infuraApiService: InfuraApiService,
-    @Autowired private val moralisApiService: MoralisApiService,
     @Autowired private val walletService: WalletService,
     @Autowired private val nftService: NftService,
     @Autowired private val walletController: WalletController,
@@ -92,13 +90,6 @@ class ValidatorTest(
         println("rest : " + res.block())
     }
 
-
-    @Test
-    fun getNftsByAddress() {
-        val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
-        val res= moralisApiService.getNFTsByAddress(address,ChainType.POLYGON_MAINNET)
-        println("response : " + res.block())
-    }
 
     @Test
     fun signin1() {

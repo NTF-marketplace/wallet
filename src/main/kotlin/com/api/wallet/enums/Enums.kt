@@ -16,7 +16,7 @@ enum class ContractType{
         ERC721
 }
 
-enum class StatusType { LISTING,AUCTION,NONE }
+enum class StatusType { RESERVATION, LISTING, RESERVATION_CANCEL, CANCEL, EXPIRED, NONE }
 enum class AccountType{ DEPOSIT, WITHDRAW }
 
 enum class TransferType {
@@ -28,4 +28,5 @@ enum class MyEnum { ORANGE,APPLE }
 enum class TokenType {
         MATIC, ETH
 }
+
 

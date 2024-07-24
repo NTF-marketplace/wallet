@@ -42,17 +42,16 @@ class MessageReceiver(
         exchange = Exchange(value = "listingExchange", type = ExchangeTypes.FANOUT)
     )])
     fun listingMessage(listing: ListingResponse){
-        println("active : " + listing.active)
         accountService.updateListing(listing).subscribe()
     }
 
-    @RabbitListener(bindings = [QueueBinding(
-        value = Queue(name = "", durable = "false", exclusive = "true", autoDelete = "true"),
-        exchange = Exchange(value = "listingCancelExchange", type = ExchangeTypes.FANOUT)
-    )])
-    fun listingCancelMessage(listing: ListingResponse){
-        accountService.updateListing(listing).subscribe()
-    }
+    // @RabbitListener(bindings = [QueueBinding(
+    //     value = Queue(name = "", durable = "false", exclusive = "true", autoDelete = "true"),
+    //     exchange = Exchange(value = "listingCancelExchange", type = ExchangeTypes.FANOUT)
+    // )])
+    // fun listingCancelMessage(listing: ListingResponse){
+    //     accountService.updateListing(listing).subscribe()
+    // }
 
 
 }

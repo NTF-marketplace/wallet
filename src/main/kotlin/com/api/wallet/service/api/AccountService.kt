@@ -230,9 +230,14 @@ class AccountService(
     fun updateListing(newListing: ListingResponse): Mono<Void> {
         return accountNftRepository.findByNftIdAndWalletAddressAndChainType(newListing.nftId, newListing.address)
             .flatMap { accountNft ->
-                val updatedStatus = if (newListing.active) StatusType.LISTING else StatusType.NONE
+                val updatedStatus = when (newListing.statusType) {
+                    StatusType.RESERVATION_CANCEL, StatusType.CANCEL, StatusType.EXPIRED -> StatusType.NONE
+                    else -> newListing.statusType
+                }
+
                 val updatedAccountNft = accountNft.update(updatedStatus)
                 accountNftRepository.save(updatedAccountNft)
             }.then()
     }
+
 }
