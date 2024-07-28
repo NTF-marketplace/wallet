@@ -1,6 +1,7 @@
 package com.api.wallet.rabbitMQ
 
 import com.api.wallet.rabbitMQ.dto.AdminTransferResponse
+import com.api.wallet.rabbitMQ.dto.AuctionResponse
 import com.api.wallet.rabbitMQ.dto.ListingResponse
 import com.api.wallet.service.api.AccountService
 import com.api.wallet.service.api.NftService
@@ -45,13 +46,13 @@ class MessageReceiver(
         accountService.updateListing(listing).subscribe()
     }
 
-    // @RabbitListener(bindings = [QueueBinding(
-    //     value = Queue(name = "", durable = "false", exclusive = "true", autoDelete = "true"),
-    //     exchange = Exchange(value = "listingCancelExchange", type = ExchangeTypes.FANOUT)
-    // )])
-    // fun listingCancelMessage(listing: ListingResponse){
-    //     accountService.updateListing(listing).subscribe()
-    // }
+     @RabbitListener(bindings = [QueueBinding(
+         value = Queue(name = "", durable = "false", exclusive = "true", autoDelete = "true"),
+         exchange = Exchange(value = "auctionExchange", type = ExchangeTypes.FANOUT)
+     )])
+     fun auctionMessage(auction: AuctionResponse){
+         accountService.updateAuction(auction).subscribe()
+     }
 
 
 }

@@ -24,7 +24,7 @@ CREATE TYPE my_enum AS ENUM(
 
 
 CREATE TYPE status_type AS ENUM(
-    'RESERVATION', 'LISTING', 'NONE'
+    'RESERVATION', 'ACTIVED', 'NONE','LISTING','AUCTION'
     );
 
 

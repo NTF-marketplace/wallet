@@ -21,6 +21,7 @@ import com.api.wallet.enums.TransferType
 import com.api.wallet.event.AccountEvent
 import com.api.wallet.event.AccountNftEvent
 import com.api.wallet.rabbitMQ.dto.AdminTransferResponse
+import com.api.wallet.rabbitMQ.dto.AuctionResponse
 import com.api.wallet.rabbitMQ.dto.ListingResponse
 import com.api.wallet.service.external.admin.AdminApiService
 import com.api.wallet.storage.PriceStorage
@@ -230,9 +231,25 @@ class AccountService(
     fun updateListing(newListing: ListingResponse): Mono<Void> {
         return accountNftRepository.findByNftIdAndWalletAddressAndChainType(newListing.nftId, newListing.address)
             .flatMap { accountNft ->
+                println("statusType : " + newListing.statusType)
                 val updatedStatus = when (newListing.statusType) {
                     StatusType.RESERVATION_CANCEL, StatusType.CANCEL, StatusType.EXPIRED -> StatusType.NONE
+                    StatusType.ACTIVED -> StatusType.LISTING
                     else -> newListing.statusType
+                }
+
+                val updatedAccountNft = accountNft.update(updatedStatus)
+                accountNftRepository.save(updatedAccountNft)
+            }.then()
+    }
+
+    fun updateAuction(newAuction: AuctionResponse): Mono<Void> {
+        return accountNftRepository.findByNftIdAndWalletAddressAndChainType(newAuction.nftId, newAuction.address)
+            .flatMap { accountNft ->
+                val updatedStatus = when (newAuction.statusType) {
+                    StatusType.RESERVATION_CANCEL, StatusType.CANCEL, StatusType.EXPIRED -> StatusType.NONE
+                    StatusType.ACTIVED -> StatusType.AUCTION
+                    else -> newAuction.statusType
                 }
 
                 val updatedAccountNft = accountNft.update(updatedStatus)
