@@ -1,7 +1,7 @@
 package com.api.wallet.rabbitMQ.dto
 
+import com.api.wallet.enums.ChainType
 import com.api.wallet.enums.StatusType
-import com.api.wallet.enums.TokenType
 import java.math.BigDecimal
 data class ListingResponse(
     val id : Long,
@@ -11,5 +11,5 @@ data class ListingResponse(
     val endDateTime: Long,
     val statusType: StatusType,
     val price: BigDecimal,
-    val tokenType: TokenType
+    val chainType: ChainType
 )

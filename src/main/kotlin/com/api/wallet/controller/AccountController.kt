@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.math.BigDecimal
 
 @RestController
 @RequestMapping("/v1/account")
@@ -49,11 +50,21 @@ class AccountController(
         return accountService.hasAccountNftByNftId(address, nftId)
     }
 
+    @GetMapping("/has/balance")
+    fun hasAccountBalance(
+        @RequestParam address: String,
+        @RequestParam chainType: ChainType,
+        @RequestParam requiredBalance: BigDecimal
+    ): Mono<Boolean> {
+        return accountService.checkAccountBalance(address, chainType, requiredBalance)
+    }
+
     @GetMapping
     fun getAccount(
         @RequestParam address: String,
+        @RequestParam(required = false) chainType: ChainType?,
     ): Flux<AccountResponse> {
-        return accountService.findByAccountsByAddress(address)
+        return accountService.findByAccountsByAddress(address,chainType)
     }
 
     @GetMapping("/logs")

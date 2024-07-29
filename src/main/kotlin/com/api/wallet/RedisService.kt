@@ -34,9 +34,9 @@ class RedisService(
             .flatMapMany { list ->
                 Flux.fromIterable(list.filterNotNull().map { data ->
                     objectMapper.convertValue(data, NftMetadataResponse::class.java)
-                }).switchIfEmpty {
+                }).switchIfEmpty (
                     nftApiService.getNftsByIds(nftIds)
-                }
+                )
             }
     }
 
