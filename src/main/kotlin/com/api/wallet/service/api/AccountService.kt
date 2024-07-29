@@ -63,11 +63,30 @@ class AccountService(
             .switchIfEmpty(Mono.just(false))
     }
 
-    fun findByAccountsByAddress(address:String) : Flux<AccountResponse> {
-        return walletRepository.findAllByAddress(address)
-            .flatMap { findByAccountByWallet(it) }
+    fun checkAccountBalances(address: String, chainTypes: List<ChainType>, requiredBalance: BigDecimal): Mono<Boolean> {
+        return walletRepository.findAllByAddressAndChainTypeIn(address, chainTypes)
             .collectList()
-            .flatMapMany { Flux.fromIterable(it) }
+            .flatMap { wallets ->
+                val walletIds = wallets.map { it.id!! }
+                accountRepository.findAllByWalletIdIn(walletIds)
+                    .collectList()
+                    .map { accounts ->
+                        accounts.any { it.balance >= requiredBalance }
+                    }
+            }
+    }
+    fun findByAccountsByAddress(address: String, chainType: ChainType?): Flux<AccountResponse> {
+        return if (chainType != null) {
+            walletRepository.findByAddressAndChainType(address, chainType)
+                .flatMapMany { wallet ->
+                    findByAccountByWallet(wallet).flux()
+                }
+        } else {
+            walletRepository.findAllByAddress(address)
+                .flatMap { wallet ->
+                    findByAccountByWallet(wallet)
+                }
+        }
     }
 
 
