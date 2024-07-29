@@ -53,10 +53,10 @@ class AccountController(
     @GetMapping("/has/balance")
     fun hasAccountBalance(
         @RequestParam address: String,
-        @RequestParam chainTypes: List<ChainType>,
+        @RequestParam chainType: ChainType,
         @RequestParam requiredBalance: BigDecimal
     ): Mono<Boolean> {
-        return accountService.checkAccountBalances(address, chainTypes, requiredBalance)
+        return accountService.checkAccountBalance(address, chainType, requiredBalance)
     }
 
     @GetMapping

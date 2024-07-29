@@ -7,5 +7,4 @@ import reactor.core.publisher.Mono
 interface AccountRepository : ReactiveCrudRepository<Account,Long> {
 
     fun findByWalletId(walletId: Long): Mono<Account>
-    fun findAllByWalletIdIn(walletIds: List<Long>): Flux<Account>
 }
