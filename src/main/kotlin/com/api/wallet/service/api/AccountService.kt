@@ -55,7 +55,7 @@ class AccountService(
     private val adminApiService: AdminApiService,
     ) {
 
-    fun hasAccountNftByNftId(address: String, nftId: Long): Mono<Boolean> {
+    fun checkAccountNftId(address: String, nftId: Long): Mono<Boolean> {
         return accountNftRepository.findByNftIdAndWalletAddressAndChainType(nftId, address)
             .flatMap {
                 Mono.just(true)
@@ -97,7 +97,7 @@ class AccountService(
     }
 
     fun findByAccountNftByAddress(address: String, chainType: ChainType?, pageable: Pageable): Mono<Page<NftMetadataResponse>> {
-        return findAllAccountByAddress(address, chainType)
+        return findAccountByAddress(address, chainType)
             .flatMap { account ->
                 accountNftRepository.findByAccountId(account.id!!)
             }
@@ -108,7 +108,7 @@ class AccountService(
             }
     }
 
-    fun findAllAccountByAddress(address: String, chainType: ChainType?): Flux<Account> {
+    fun findAccountByAddress(address: String, chainType: ChainType?): Flux<Account> {
         return walletService.findWallet(address,chainType)
             .flatMap {
                 findByAccountOrCreate(it)

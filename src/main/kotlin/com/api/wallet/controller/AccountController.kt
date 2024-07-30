@@ -47,7 +47,7 @@ class AccountController(
         @RequestParam address: String,
         @RequestParam nftId: Long,
     ): Mono<Boolean> {
-        return accountService.hasAccountNftByNftId(address, nftId)
+        return accountService.checkAccountNftId(address, nftId)
     }
 
     @GetMapping("/has/balance")
