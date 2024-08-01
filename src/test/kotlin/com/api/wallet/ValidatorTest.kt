@@ -2,6 +2,7 @@ package com.api.wallet
 
 import com.api.wallet.controller.WalletController
 import com.api.wallet.controller.dto.request.DepositRequest
+import com.api.wallet.controller.dto.request.TransferRequest
 import com.api.wallet.controller.dto.request.ValidateRequest
 import com.api.wallet.controller.dto.request.WithdrawERC20Request
 import com.api.wallet.controller.dto.request.WithdrawERC721Request
@@ -25,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.domain.PageRequest
 import org.springframework.test.context.ActiveProfiles
+import org.web3j.tx.Transfer
 import reactor.test.StepVerifier
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -237,6 +239,13 @@ class ValidatorTest(
         println("res : " + res.toString())
 
     }
+
+    // @Test
+    // fun accountTransfer() {
+    //     val request = TransferRequest(
+    //         fromAddress =
+    //     )
+    // }
 
 
 }

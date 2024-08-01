@@ -7,5 +7,6 @@ data class TransferRequest(
     val fromAddress: String,
     val toAddress: String,
     val chainType: ChainType,
-    val amount: BigDecimal
+    val amount: BigDecimal,
+    val nftId: Long,
 )
