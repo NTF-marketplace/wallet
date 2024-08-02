@@ -2,10 +2,7 @@ package com.api.wallet.service
 
 import com.api.wallet.controller.dto.request.TransferRequest
 import com.api.wallet.domain.account.Account
-import com.api.wallet.domain.account.AccountRepository
-import com.api.wallet.domain.account.nft.AccountNft
-import com.api.wallet.domain.account.nft.AccountNftRepository
-import com.api.wallet.enums.StatusType
+import com.api.wallet.enums.AccountType
 import com.api.wallet.service.api.AccountService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -17,17 +14,14 @@ import java.math.BigDecimal
 @Service
 class TransferService(
     private val accountService: AccountService,
-    private val accountRepository: AccountRepository,
-    private val accountNftRepository: AccountNftRepository,
 ) {
 
-    // 격리수준을 설정해야되지않을까?
     @Transactional
     fun transfer(request: TransferRequest): Mono<ResponseEntity<String>> {
         return findAndValidateAccounts(request)
             .flatMap { (fromAccount, toAccount) ->
                 updateBalances(fromAccount, toAccount, request.amount)
-                    .then(transferNft(fromAccount.id!!, toAccount.id!!, request.nftId))
+                    .then(transferNft(fromAccount, toAccount, request.nftId))
                     .then(Mono.just(ResponseEntity.ok("Transfer and NFT ownership transfer successful")))
                     .onErrorResume { ex ->
                         Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Transfer failed: ${ex.message}"))
@@ -56,31 +50,19 @@ class TransferService(
             }
     }
     private fun updateBalances(fromAccount: Account, toAccount: Account, amount: BigDecimal): Mono<Void> {
-        fromAccount.balance -= amount
-        toAccount.balance += amount
-        return updateAccount(fromAccount).then()
+        val timestamp = System.currentTimeMillis()
+
+        return accountService.processERC20Transfer(fromAccount, AccountType.WITHDRAW, balance = amount, timestamp = timestamp)
+            .then(accountService.processERC20Transfer(toAccount, AccountType.DEPOSIT, balance = amount, timestamp = timestamp))
     }
 
-    private fun transferNft(fromAccountId: Long, toAccountId: Long, nftId: Long): Mono<Void> {
-        return accountNftRepository.findByAccountIdAndNftId(toAccountId, nftId)
-            .switchIfEmpty(Mono.error(IllegalArgumentException("NFT not found in the target account")))
-            .flatMap { nft ->
-                accountNftRepository.delete(nft)
-                    .then(
-                        accountNftRepository.save(
-                            AccountNft(
-                                accountId = fromAccountId,
-                                nftId = nftId,
-                                status = StatusType.LEDGER
-                            )
-                        )
-                    )
-            }.then()
+    
+    fun transferNft(fromAccount: Account, toAccount: Account, nftId: Long): Mono<Void> {
+        val timestamp = System.currentTimeMillis()
+
+        return accountService.processERC721Transfer(toAccount, AccountType.WITHDRAW, nftId, timestamp)
+            .then(accountService.processERC721Transfer(fromAccount, AccountType.DEPOSIT, nftId, timestamp))
     }
 
-
-    fun updateAccount(account: Account): Mono<Account> {
-        return accountRepository.save(account)
-    }
 
 }

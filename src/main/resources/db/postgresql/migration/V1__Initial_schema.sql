@@ -24,7 +24,7 @@ CREATE TYPE my_enum AS ENUM(
 
 
 CREATE TYPE status_type AS ENUM(
-    'RESERVATION', 'ACTIVED', 'NONE','LISTING','AUCTION','LEDGER'
+    'RESERVATION', 'ACTIVED', 'NONE','LISTING','AUCTION'
     );
 
 
@@ -86,11 +86,28 @@ CREATE TABLE IF NOT EXISTS account_nft (
 
 CREATE TABLE IF NOT EXISTS account_log (
     id SERIAL PRIMARY KEY,
-    account_id BIGINT REFERENCES account(id),
+    from_account_id BIGINT REFERENCES account(id),
+    to_account_id BIGINT REFERENCES account(id),
     nft_id BIGINT REFERENCES nft(id),
     timestamp BIGINT not null,
     account_type account_type not null,
     transfer_type transfer_type not null,
     balance DECIMAL(19, 4)
 );
+
+-- CREATE TABLE IF NOT EXISTS transferLog (
+--     id SERIAL PRIMARY KEY,
+--     timestamp BIGINT not null,
+--     from_account_id BIGINT REFERENCES account(id),
+--     to_account_id BIGINT REFERENCES account(id),
+--     balance DECIMAL(19, 4)
+-- );
+--
+-- CREATE TABLE IF NOT EXISTS transferNftLog (
+--     id SERIAL PRIMARY KEY,
+--     timestamp BIGINT not null,
+--     from_account_id BIGINT REFERENCES account(id),
+--     to_account_id BIGINT REFERENCES account(id),
+--     nft_id BIGINT REFERENCES nft(id)
+-- );
 

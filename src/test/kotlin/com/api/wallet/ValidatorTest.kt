@@ -14,6 +14,7 @@ import com.api.wallet.enums.ChainType
 import com.api.wallet.enums.MyEnum
 import com.api.wallet.enums.TransferType
 import com.api.wallet.rabbitMQ.dto.AdminTransferResponse
+import com.api.wallet.service.TransferService
 import com.api.wallet.service.api.AccountService
 import com.api.wallet.service.api.NftService
 import com.api.wallet.service.api.WalletService
@@ -47,6 +48,7 @@ class ValidatorTest(
     @Autowired private val testRepository: TestRepository,
     @Autowired private val redisService: RedisService,
     @Autowired private val adminApiService: AdminApiService,
+    @Autowired private val transferService: TransferService,
 ) {
 
     @Test
@@ -145,22 +147,22 @@ class ValidatorTest(
         println("Wallet found: ${wallet?.address}")
     }
 
-    @Test
-    fun test2() {
-        val response = AdminTransferResponse(
-            id= 3L,
-            walletAddress = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
-            nftId = null,
-            timestamp =  Instant.now().toEpochMilli(),
-            accountType = AccountType.DEPOSIT,
-            transferType = TransferType.ERC20,
-            balance = BigDecimal(0.8),
-            chainType = ChainType.POLYGON_MAINNET
-        )
-        accountService.saveAccount(response).block()
-
-        Thread.sleep(100000)
-    }
+    // @Test
+    // fun test2() {
+    //     val response = AdminTransferResponse(
+    //         id= 3L,
+    //         walletAddress = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
+    //         nftId = null,
+    //         timestamp =  Instant.now().toEpochMilli(),
+    //         accountType = AccountType.DEPOSIT,
+    //         transferType = TransferType.ERC20,
+    //         balance = BigDecimal(0.8),
+    //         chainType = ChainType.POLYGON_MAINNET
+    //     )
+    //     accountService.saveAccount(response).block()
+    //
+    //     Thread.sleep(100000)
+    // }
 
     @Test
     fun getAccountLog() {
@@ -240,11 +242,23 @@ class ValidatorTest(
 
     }
 
+    @Test
+    fun accountTransfer() {
+        val request = TransferRequest(
+            fromAddress ="0x01b82b4aa3f66f213d62d53e829bc172a6a72867",
+            toAddress =  "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
+            chainType =  ChainType.POLYGON_MAINNET,
+            amount = BigDecimal(2),
+            nftId = 2L
+        )
+        val res = transferService.transfer(request).block()
+        println(res.toString())
+
+    }
+
     // @Test
-    // fun accountTransfer() {
-    //     val request = TransferRequest(
-    //         fromAddress =
-    //     )
+    // fun transferNft() {
+    //     transferService.transferNft()
     // }
 
 

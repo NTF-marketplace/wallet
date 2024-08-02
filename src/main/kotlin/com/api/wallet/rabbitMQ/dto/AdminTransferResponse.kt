@@ -6,7 +6,7 @@ import com.api.wallet.enums.TransferType
 import java.math.BigDecimal
 
 data class AdminTransferResponse(
-    val id: Long,
+    val id: Long?,
     val walletAddress: String,
     val nftId: Long?,
     val timestamp: Long,

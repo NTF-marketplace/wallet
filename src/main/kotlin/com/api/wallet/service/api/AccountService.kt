@@ -29,13 +29,11 @@ import com.api.wallet.util.Util.toPagedMono
 import com.api.wallet.util.Util.toTokenType
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Lazy
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
@@ -66,7 +64,7 @@ class AccountService(
     fun checkAccountBalance(address: String, chainType: ChainType, requiredBalance: BigDecimal): Mono<Boolean> {
         return walletRepository.findByAddressAndChainType(address, chainType)
             .flatMap { wallet ->
-                accountRepository.findByWalletId(wallet.id!!)
+                findByAccountOrCreate(wallet)
                     .map { account ->
                         account.balance >= requiredBalance
                     }
@@ -88,6 +86,7 @@ class AccountService(
     }
 
 
+    // 만약 account가 없으면 어떻게 되는건가?
     fun findByAccountByWallet(wallet: Wallet): Mono<AccountResponse> {
         return accountRepository.findByWalletId(wallet.id!!)
             .map { account ->
@@ -128,7 +127,7 @@ class AccountService(
     }
 
 
-    fun saveAccount(transfer: AdminTransferResponse): Mono<Void> {
+    fun saveAccountTransfer(transfer: AdminTransferResponse): Mono<Void> {
         return walletRepository.findByAddressAndChainType(transfer.walletAddress,transfer.chainType)
             .flatMap { wallet ->
                 findByAccountOrCreate(wallet)
@@ -144,57 +143,73 @@ class AccountService(
 
     private fun processTransfer(account: Account, transfer: AdminTransferResponse): Mono<Void> {
         return if (transfer.transferType == TransferType.ERC721) {
-            processERC721Transfer(account, transfer)
+            processERC721Transfer(
+                account,
+                transfer.accountType,
+                transfer.nftId!!,
+                transfer.timestamp
+            )
         } else {
-            processERC20Transfer(account, transfer)
+            processERC20Transfer(
+                account,
+                transfer.accountType,
+                transfer.balance!!,
+                transfer.timestamp
+            )
         }
     }
 
-    private fun processERC721Transfer(account: Account, transfer: AdminTransferResponse): Mono<Void> {
-        return if (transfer.accountType == AccountType.DEPOSIT) {
-            nftRepository.findById(transfer.nftId!!)
-                .flatMap { nft ->
-                    val accountNft = AccountNft(
-                        id = null,
-                        accountId = account.id!!,
-                        nftId = nft.id
-                    )
-                    accountNftRepository.save(accountNft)
-                        .doOnSuccess { savedAccountNft ->
-                            eventPublisher.publishEvent(AccountNftEvent(
-                                savedAccountNft,
-                                transfer.accountType,
-                                transfer.timestamp,
-                            ))
-                        }
-                        .then()
-                }
-        } else{
-            accountNftRepository.findByAccountIdAndNftId(account.id!!, transfer.nftId!!)
-                .flatMap { accountNft ->
-                    accountNftRepository.delete(accountNft)
-                        .doOnSuccess {
-                            eventPublisher.publishEvent(AccountNftEvent(
-                                accountNft,
-                                transfer.accountType,
-                                transfer.timestamp,
-                            ))
-                        }
-                        .then()
-                }
+    fun processERC721Transfer(account: Account, accountType: AccountType, nftId:Long, timestamp: Long): Mono<Void> {
+        return when (accountType) {
+            AccountType.DEPOSIT -> depositERC721(account, nftId,timestamp)
+            AccountType.WITHDRAW -> withdrawERC721(account, nftId, timestamp)
         }
     }
 
+    fun depositERC721(account: Account, nftId:Long, timestamp:Long): Mono<Void> {
+        return nftRepository.findById(nftId!!)
+            .flatMap { nft ->
+                val accountNft = AccountNft(
+                    id = null,
+                    accountId = account.id!!,
+                    nftId = nft.id
+                )
+                accountNftRepository.save(accountNft)
+                    .doOnSuccess { savedAccountNft ->
+                        eventPublisher.publishEvent(AccountNftEvent(
+                            savedAccountNft,
+                            AccountType.DEPOSIT,
+                            timestamp,
+                        ))
+                    }
+                    .then()
+            }
+    }
 
-    private fun processERC20Transfer(account: Account, transfer: AdminTransferResponse): Mono<Void> {
-        val updatedAccount = when (transfer.accountType) {
-            AccountType.DEPOSIT -> account.deposit(transfer.balance!!)
-            AccountType.WITHDRAW -> account.withdraw(transfer.balance!!)
+    fun withdrawERC721(account: Account, nftId:Long, timestamp:Long): Mono<Void> {
+        return accountNftRepository.findByAccountIdAndNftId(account.id!!, nftId)
+            .flatMap { accountNft ->
+                accountNftRepository.delete(accountNft)
+                    .doOnSuccess {
+                        eventPublisher.publishEvent(AccountNftEvent(
+                            accountNft,
+                            AccountType.WITHDRAW,
+                            timestamp,
+                        ))
+                    }
+                    .then()
+            }
+    }
+
+    fun processERC20Transfer(account: Account, accountType: AccountType, balance: BigDecimal, timestamp: Long): Mono<Void> {
+        val updatedAccount = when (accountType) {
+            AccountType.DEPOSIT -> account.deposit(balance)
+            AccountType.WITHDRAW -> account.withdraw(balance!!)
         }
 
         return accountRepository.save(updatedAccount)
             .doOnSuccess { savedAccount ->
-                eventPublisher.publishEvent(AccountEvent(savedAccount, transfer.accountType, transfer.timestamp,transfer.balance))
+                eventPublisher.publishEvent(AccountEvent(savedAccount, accountType, timestamp,balance))
             }
             .then()
     }
