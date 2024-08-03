@@ -12,15 +12,15 @@ data class Account(
     var balance: BigDecimal = BigDecimal.ZERO,
 ) {
 
-    // fun updateBalance(newBalance: BigDecimal): Account {
-    //     return this.copy(balance = newBalance)
-    // }
 
     fun deposit(amount: BigDecimal): Account {
         return this.copy(balance = this.balance.add(amount))
     }
 
     fun withdraw(amount: BigDecimal): Account {
+        if (this.balance < amount) {
+            throw RuntimeException("Insufficient balance to withdraw the requested amount.")
+        }
         return this.copy(balance = this.balance.subtract(amount))
     }
 }

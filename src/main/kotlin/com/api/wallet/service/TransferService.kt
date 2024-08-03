@@ -23,9 +23,12 @@ class TransferService(
                 updateBalances(fromAccount, toAccount, request.amount)
                     .then(transferNft(fromAccount, toAccount, request.nftId))
                     .then(Mono.just(ResponseEntity.ok("Transfer and NFT ownership transfer successful")))
-                    .onErrorResume { ex ->
-                        Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Transfer failed: ${ex.message}"))
-                    }
+            }
+            .onErrorResume { ex ->
+                when (ex) {
+                    is IllegalArgumentException -> Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Transfer failed: ${ex.message}"))
+                    else -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Transfer failed: ${ex.message}"))
+                }
             }
     }
 
@@ -36,10 +39,6 @@ class TransferService(
                 val fromAccount = fromAccounts.firstOrNull()
                     ?: return@flatMap Mono.error(IllegalArgumentException("From account not found"))
 
-                if (fromAccount.balance < request.amount) {
-                    return@flatMap Mono.error(IllegalArgumentException("Insufficient balance"))
-                }
-
                 accountService.findAccountByAddress(request.toAddress, request.chainType)
                     .collectList()
                     .flatMap { toAccounts ->
@@ -49,19 +48,26 @@ class TransferService(
                     }
             }
     }
+
     private fun updateBalances(fromAccount: Account, toAccount: Account, amount: BigDecimal): Mono<Void> {
         val timestamp = System.currentTimeMillis()
 
         return accountService.processERC20Transfer(fromAccount, AccountType.WITHDRAW, balance = amount, timestamp = timestamp)
             .then(accountService.processERC20Transfer(toAccount, AccountType.DEPOSIT, balance = amount, timestamp = timestamp))
+            .onErrorResume { error ->
+                Mono.error(IllegalArgumentException("Failed to update balances: ${error.message}"))
+            }
     }
 
-    
+
     fun transferNft(fromAccount: Account, toAccount: Account, nftId: Long): Mono<Void> {
         val timestamp = System.currentTimeMillis()
 
         return accountService.processERC721Transfer(toAccount, AccountType.WITHDRAW, nftId, timestamp)
             .then(accountService.processERC721Transfer(fromAccount, AccountType.DEPOSIT, nftId, timestamp))
+            .onErrorResume { error ->
+                Mono.error(IllegalArgumentException("Failed to update transferNft: ${error.message}"))
+            }
     }
 
 

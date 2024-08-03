@@ -186,8 +186,9 @@ class AccountService(
             }
     }
 
-    fun withdrawERC721(account: Account, nftId:Long, timestamp:Long): Mono<Void> {
+    fun withdrawERC721(account: Account, nftId: Long, timestamp: Long): Mono<Void> {
         return accountNftRepository.findByAccountIdAndNftId(account.id!!, nftId)
+            .switchIfEmpty(Mono.error(RuntimeException("NFT with id $nftId not found for account ${account.id}")))
             .flatMap { accountNft ->
                 accountNftRepository.delete(accountNft)
                     .doOnSuccess {
@@ -201,18 +202,24 @@ class AccountService(
             }
     }
 
-    fun processERC20Transfer(account: Account, accountType: AccountType, balance: BigDecimal, timestamp: Long): Mono<Void> {
-        val updatedAccount = when (accountType) {
-            AccountType.DEPOSIT -> account.deposit(balance)
-            AccountType.WITHDRAW -> account.withdraw(balance!!)
-        }
 
-        return accountRepository.save(updatedAccount)
-            .doOnSuccess { savedAccount ->
-                eventPublisher.publishEvent(AccountEvent(savedAccount, accountType, timestamp,balance))
+    fun processERC20Transfer(account: Account, accountType: AccountType, balance: BigDecimal, timestamp: Long): Mono<Void> {
+        return try {
+            val updatedAccount = when (accountType) {
+                AccountType.DEPOSIT -> account.deposit(balance)
+                AccountType.WITHDRAW -> account.withdraw(balance)
             }
-            .then()
+
+            accountRepository.save(updatedAccount)
+                .doOnSuccess { savedAccount ->
+                    eventPublisher.publishEvent(AccountEvent(savedAccount, accountType, timestamp, balance))
+                }
+                .then()
+        } catch (ex: RuntimeException) {
+            Mono.error(ex)
+        }
     }
+
 
     // 상태처리
     fun depositProcess(address: String , request: DepositRequest): Mono<ResponseEntity<Void>>{
