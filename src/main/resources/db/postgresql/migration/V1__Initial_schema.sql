@@ -94,3 +94,4 @@ CREATE TABLE IF NOT EXISTS account_log (
     balance DECIMAL(19, 4)
 );
 
+

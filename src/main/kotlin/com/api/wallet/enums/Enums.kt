@@ -16,7 +16,7 @@ enum class ContractType{
         ERC721
 }
 
-enum class StatusType { RESERVATION, ACTIVED, RESERVATION_CANCEL, CANCEL, EXPIRED, NONE, LISTING, AUCTION }
+enum class StatusType { RESERVATION, ACTIVED, RESERVATION_CANCEL, CANCEL, EXPIRED, NONE, LISTING, AUCTION,LEDGER }
 enum class AccountType{ DEPOSIT, WITHDRAW }
 
 enum class TransferType {

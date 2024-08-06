@@ -22,8 +22,9 @@ class MessageReceiver(
         value = Queue(name = "", durable = "false", exclusive = "true", autoDelete = "true"),
         exchange = Exchange(value = "transferExchange", type = ExchangeTypes.FANOUT)
     )])
+
     fun transferMessage(transfer: AdminTransferResponse) {
-        accountService.saveAccount(transfer)
+        accountService.saveAccountTransfer(transfer)
             .doOnSuccess { println("Account successfully saved") }
             .doOnError { error -> println("Error occurred: ${error.message}") }
             .subscribe()

@@ -6,6 +6,8 @@ import com.api.wallet.enums.MyEnum
 import com.api.wallet.enums.StatusType
 import com.api.wallet.enums.TransferType
 import com.api.wallet.util.enumConvert.*
+import io.r2dbc.pool.ConnectionPool
+import io.r2dbc.pool.ConnectionPoolConfiguration
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration
 import io.r2dbc.postgresql.PostgresqlConnectionFactory
 import io.r2dbc.postgresql.codec.EnumCodec
@@ -27,9 +29,10 @@ import java.util.*
 class R2dbcConfig : AbstractR2dbcConfiguration(){
 
     @Bean
-    override fun connectionFactory(): PostgresqlConnectionFactory {
-        val configuration = PostgresqlConnectionConfiguration.builder()
+    override fun connectionFactory(): ConnectionFactory {
+        val config = PostgresqlConnectionConfiguration.builder()
             .host("localhost")
+            .port(5432)
             .database("wallet")
             .username("wallet")
             .password("wallet")
@@ -43,10 +46,14 @@ class R2dbcConfig : AbstractR2dbcConfiguration(){
                     .build()
             )
             .build()
-        return PostgresqlConnectionFactory(configuration)
+
+        val poolConfig = ConnectionPoolConfiguration.builder()
+            .connectionFactory(PostgresqlConnectionFactory(config))
+            .maxSize(2)
+            .build()
+
+        return ConnectionPool(poolConfig)
     }
-
-
     @Bean
     override fun r2dbcCustomConversions(): R2dbcCustomConversions {
         val converters: MutableList<Converter<*, *>?> = ArrayList<Converter<*, *>?>()

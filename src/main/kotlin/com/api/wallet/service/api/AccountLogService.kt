@@ -26,7 +26,7 @@ class AccountLogService(
     private val redisService: RedisService,
 ) {
     fun findAllByAccountLog(address: String, accountType: AccountType?, pageable: Pageable): Mono<Page<AccountLogResponse>> {
-        return accountService.findAllAccountByAddress(address, null)
+        return accountService.findAccountByAddress(address, null)
             .mapNotNull { it.id!! }
             .collectList()
             .flatMap { accountIds ->

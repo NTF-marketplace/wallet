@@ -33,6 +33,7 @@ dependencies {
     implementation ("org.flywaydb:flyway-core:6.4.2")
     implementation("org.postgresql:r2dbc-postgresql:1.0.4.RELEASE")
     implementation("org.postgresql:postgresql:42.7.3")
+    implementation("io.r2dbc:r2dbc-pool")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.16.0")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.16.0")
