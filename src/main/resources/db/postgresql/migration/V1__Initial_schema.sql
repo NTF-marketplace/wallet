@@ -86,8 +86,7 @@ CREATE TABLE IF NOT EXISTS account_nft (
 
 CREATE TABLE IF NOT EXISTS account_log (
     id SERIAL PRIMARY KEY,
-    from_account_id BIGINT REFERENCES account(id),
-    to_account_id BIGINT REFERENCES account(id),
+    account_id BIGINT REFERENCES account(id),
     nft_id BIGINT REFERENCES nft(id),
     timestamp BIGINT not null,
     account_type account_type not null,
@@ -95,19 +94,4 @@ CREATE TABLE IF NOT EXISTS account_log (
     balance DECIMAL(19, 4)
 );
 
--- CREATE TABLE IF NOT EXISTS transferLog (
---     id SERIAL PRIMARY KEY,
---     timestamp BIGINT not null,
---     from_account_id BIGINT REFERENCES account(id),
---     to_account_id BIGINT REFERENCES account(id),
---     balance DECIMAL(19, 4)
--- );
---
--- CREATE TABLE IF NOT EXISTS transferNftLog (
---     id SERIAL PRIMARY KEY,
---     timestamp BIGINT not null,
---     from_account_id BIGINT REFERENCES account(id),
---     to_account_id BIGINT REFERENCES account(id),
---     nft_id BIGINT REFERENCES nft(id)
--- );
 
