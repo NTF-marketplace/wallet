@@ -1,88 +1,107 @@
 package com.api.wallet.service.api
 
 import com.api.wallet.controller.dto.request.ValidateRequest
-import com.api.wallet.domain.network.Network
+import com.api.wallet.controller.dto.response.SignInResponse
+import com.api.wallet.controller.dto.response.WalletAccountResponse
 import com.api.wallet.domain.user.Users
 import com.api.wallet.domain.user.repository.UserRepository
 import com.api.wallet.domain.wallet.Wallet
 import com.api.wallet.domain.wallet.repository.WalletRepository
 import com.api.wallet.enums.ChainType
-import com.api.wallet.enums.NetworkType
-import com.api.wallet.service.infura.InfuraApiService
-import com.api.wallet.util.Util.convertNetworkTypeToChainType
+import com.api.wallet.service.external.auth.AuthApiService
+import com.api.wallet.service.external.infura.InfuraApiService
 import com.api.wallet.validator.SignatureValidator
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toFlux
 import java.math.BigDecimal
-import kotlin.concurrent.thread
 
 @Service
 class WalletService(
     private val walletRepository: WalletRepository,
     private val signatureValidator: SignatureValidator,
     private val userRepository: UserRepository,
-    private val networkService: NetworkService,
     private val infuraApiService: InfuraApiService,
+    private val authApiService: AuthApiService,
+    @Lazy private val accountService: AccountService,
 ) {
     private final val logger = LoggerFactory.getLogger(this.javaClass)
 
-    //TODO("반환값은 wallet과 jwt")
-    @Transactional
-    fun signInOrSignUp(request: ValidateRequest): Mono<Wallet> {
-        return if (authenticateWallet(request)) {
-            networkService.findByType(request.network)
-                .flatMap { network ->
-                    walletRepository.findByAddressAndNetworkType(request.address, network.type!!)
-                        .switchIfEmpty(Mono.defer {
-                            createUserAndWallet(request.address, network)
-                        })
-                }
-                .flatMap { wallet ->
-                    updateWalletBalance(wallet, request.network)
-//                        .flatMap { updatedWallet ->
-//                        requestJwt(wallet.address).map { jwt ->
-//                            Pair(updatedWallet, jwt)
-//                        }
-//                    }
-                }
-        } else {
-            Mono.error(IllegalArgumentException("유효하지 않는 지갑 주소"))
+
+    fun getWalletAccount(address:String,chainType: ChainType): Mono<WalletAccountResponse>  {
+        return findOrCreateUserAndWallet(address,chainType).flatMap {wallet ->
+            val account = accountService.findByAccountByWallet(wallet)
+            Mono.zip(Mono.just(wallet.balance), account) { balance, accounts ->
+                WalletAccountResponse(balance,accounts)
+            }
         }
     }
 
 
-    private fun createUserAndWallet(address: String, network: Network): Mono<Wallet> {
-        return userRepository.save(Users(nickName = "Unknown"))
-                .flatMap { user ->
-                    walletRepository.insert(Wallet(
-                        address = address,
-                        userId = user.id!!,
-                        networkType = network.type!!,
-                        balance = BigDecimal.ZERO,
-                        createdAt = System.currentTimeMillis(),
-                        updatedAt = System.currentTimeMillis())
-                    )
+    @Transactional
+    fun signInOrSignUp(request: ValidateRequest): Mono<SignInResponse> {
+        return if (authenticateWallet(request)) {
+            findOrCreateUserAndWallet(request.address,request.chain)
+                .flatMap { wallet ->
+                    getTokens(wallet)
                 }
+        } else {
+            Mono.error(IllegalArgumentException("not valid Wallet Address"))
+        }
     }
+
+    fun getTokens(wallet: Wallet): Mono<SignInResponse> {
+       return authApiService.getJwtToken(wallet.address)
+            .map { jwt ->
+                SignInResponse(wallet,jwt)
+            }
+    }
+
+    fun findWallet(address: String, chain: ChainType?): Flux<Wallet> {
+        return (if (chain != null) {
+            walletRepository.findByAddressAndChainType(address, chain)
+        } else {
+            walletRepository.findAllByAddress(address)
+        }).toFlux().switchIfEmpty(Flux.error(IllegalArgumentException("Wallet not found")))
+    }
+
+
+
+    private fun findOrCreateUserAndWallet(address: String, chain: ChainType): Mono<Wallet> {
+        return walletRepository.findByAddressAndChainType(address, chain)
+            .switchIfEmpty {
+                userRepository.save(Users(nickName = "Unknown"))
+                    .flatMap { user ->
+                        walletRepository.save(
+                            Wallet(
+                                address = address,
+                                userId = user.id!!,
+                                chainType = chain,
+                                balance = BigDecimal.ZERO,
+                                createdAt = System.currentTimeMillis(),
+                                updatedAt = System.currentTimeMillis()
+                            )
+                        )
+                    }
+            }
+            .flatMap { wallet ->
+                updateWalletBalance(wallet, wallet.chainType)
+            }
+    }
+
 
     private fun authenticateWallet(request: ValidateRequest): Boolean {
         return signatureValidator.verifySignature(request)
     }
 
-    private fun updateWalletBalance(wallet: Wallet,networkType: NetworkType): Mono<Wallet> {
-        val chainType = networkType.toString().convertNetworkTypeToChainType()
+    private fun updateWalletBalance(wallet: Wallet,chainType: ChainType): Mono<Wallet> {
         return infuraApiService.getBalance(wallet.address, chainType)
             .map { wallet.updateBalance(it) }
             .flatMap { walletRepository.save(it)  }
-    }
-
-    private fun convertNetworkTypeToChainType(networkType: NetworkType): ChainType {
-        return when (networkType) {
-            NetworkType.ETHEREUM -> ChainType.ETHEREUM_MAINNET
-            NetworkType.POLYGON -> ChainType.POLYGON_MAINNET
-
-        }
     }
 }

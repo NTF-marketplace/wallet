@@ -1,30 +1,38 @@
 package com.api.wallet.controller
 
-import com.api.wallet.validator.SignatureValidator
-import com.api.wallet.controller.dto.request.ValidateRequest
+import com.api.wallet.controller.dto.response.NftMetadataResponse
+import com.api.wallet.controller.dto.response.WalletAccountResponse
+import com.api.wallet.enums.ChainType
+import com.api.wallet.service.api.NftService
 import com.api.wallet.service.api.WalletService
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
+import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Mono
 
 
 @RestController
 @RequestMapping("/v1/wallet")
 class WalletController(
+    private val nftService: NftService,
     private val walletService: WalletService,
 ) {
-    // 지갑 유효성 검증
-    // 검증에 실패할 경우 return error
-    // 검증에 성공한 경우 sign-up 또는, sign-in
-    @PostMapping("/authenticate")
-    fun signInOrSignUp(@RequestBody request: ValidateRequest): ResponseEntity<*> {
-//        if(request.isAddressValid()){
-//            signatureValidator.verifySignature(request)
-//            return ResponseEntity.ok().body("Wallet authenticated with wallet address: $request")
-//        }
-        return ResponseEntity.badRequest().body("Wallet authenticated fail")
+    //  api 게이트웨이에서 헤더전파
+    @GetMapping("/nft")
+    fun getAllNft(
+        @RequestParam(required = false) chainType: ChainType?,
+        @RequestParam address: String,
+        @PageableDefault(size = 50) pageable: Pageable,
+    ): Mono<Page<NftMetadataResponse>> {
+        return nftService.readAllNftByWallet(address, chainType,pageable)
+
+    }
+
+    @GetMapping("/{chainType}")
+    fun getBalance(@PathVariable chainType: ChainType,@RequestParam address: String)
+    : Mono<WalletAccountResponse> {
+        return walletService.getWalletAccount(address,chainType)
     }
 
 }

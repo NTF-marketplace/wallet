@@ -1,37 +1,54 @@
 package com.api.wallet
 
+import com.api.wallet.controller.WalletController
+import com.api.wallet.controller.dto.request.DepositRequest
+import com.api.wallet.controller.dto.request.TransferRequest
 import com.api.wallet.controller.dto.request.ValidateRequest
-import com.api.wallet.domain.network.repository.NetworkRepository
-import com.api.wallet.domain.user.repository.UserRepository
+import com.api.wallet.controller.dto.request.WithdrawERC20Request
+import com.api.wallet.controller.dto.request.WithdrawERC721Request
+import com.api.wallet.domain.TestRepository
+import com.api.wallet.domain.account.log.AccountLogRepository
 import com.api.wallet.domain.wallet.repository.WalletRepository
+import com.api.wallet.enums.AccountType
 import com.api.wallet.enums.ChainType
-import com.api.wallet.enums.NetworkType
+import com.api.wallet.enums.MyEnum
+import com.api.wallet.enums.TransferType
+import com.api.wallet.rabbitMQ.dto.AdminTransferResponse
+import com.api.wallet.service.TransferService
+import com.api.wallet.service.api.AccountService
 import com.api.wallet.service.api.NftService
 import com.api.wallet.service.api.WalletService
-import com.api.wallet.service.api.WalletTransactionService
-import com.api.wallet.service.infura.InfuraApiService
-import com.api.wallet.service.moralis.MoralisService
-import com.api.wallet.util.Util.toIsoString
-import com.api.wallet.util.Util.toTimestamp
+import com.api.wallet.service.external.admin.AdminApiService
+import com.api.wallet.service.external.infura.InfuraApiService
 import com.api.wallet.validator.SignatureValidator
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import java.lang.System.currentTimeMillis
-
+import org.springframework.data.domain.PageRequest
+import org.springframework.test.context.ActiveProfiles
+import org.web3j.tx.Transfer
+import reactor.test.StepVerifier
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.time.Instant
 
 @SpringBootTest
 //TODO("service 나눠서 작성")
+@ActiveProfiles("local")
 class ValidatorTest(
     @Autowired private val signatureValidator: SignatureValidator,
     @Autowired private val infuraApiService: InfuraApiService,
-    @Autowired private val moralisService: MoralisService,
     @Autowired private val walletService: WalletService,
-    @Autowired private val networkRepository: NetworkRepository,
-    @Autowired private val userRepository: UserRepository,
-    @Autowired private val walletRepository: WalletRepository,
-    @Autowired private val walletTransactionService: WalletTransactionService,
     @Autowired private val nftService: NftService,
+    @Autowired private val walletController: WalletController,
+    @Autowired private val accountService: AccountService,
+    @Autowired private val walletRepository: WalletRepository,
+    @Autowired private val accountLogRepository: AccountLogRepository,
+    @Autowired private val testRepository: TestRepository,
+    @Autowired private val redisService: RedisService,
+    @Autowired private val adminApiService: AdminApiService,
+    @Autowired private val transferService: TransferService,
 ) {
 
     @Test
@@ -40,7 +57,7 @@ class ValidatorTest(
             address = "0x1234567890123456789012345678901234567890",
             message = "This is a test message",
             signature = "signature",
-            network = NetworkType.POLYGON
+            chain = ChainType.POLYGON_MAINNET
         )
 
         if(request.isAddressValid()){
@@ -56,7 +73,7 @@ class ValidatorTest(
             address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
             message = "Hello, MetaMask!",
             signature = "0x5714c3d6a6773a614091a9ac81dc8f4f6a0219349ddb4010edb6595c47b158814a9265e2c17aa7f7cfe479636a96c9f93cd665b213cc76b005c4b742edb6b27c1c",
-            network = NetworkType.POLYGON
+            chain = ChainType.POLYGON_MAINNET
         )
         val isValid = signatureValidator.verifySignature(request)
         println(isValid)
@@ -65,7 +82,6 @@ class ValidatorTest(
     @Test
     fun getBlockNumber() {
 //        val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
-        val apiKey = "98b672d2ce9a4089a3a5cb5081dde2fa"
         val res = infuraApiService.getBlockNumber(ChainType.POLYGON_MAINNET)
         println(res.block())
     }
@@ -74,61 +90,176 @@ class ValidatorTest(
     @Test
     fun getBalance() {
         val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
-        val apiKey = "98b672d2ce9a4089a3a5cb5081dde2fa"
         val res = infuraApiService.getBalance(address, ChainType.POLYGON_MAINNET)
         println("rest : " + res.block())
     }
 
 
     @Test
-    fun getNftsByAddress() {
-        val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
-        val res= moralisService.getNFTsByAddress(address,ChainType.POLYGON_MAINNET)
-        println("response : " + res.block())
-    }
-
-    @Test
-    fun getWalletNFTTransfers() {
-        val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
-        val toDate = currentTimeMillis().toIsoString()
-        val fromDate = 1710852978000.toIsoString()
-        val res= moralisService.getWalletNFTTransfers(
-            address,
-            chainType = ChainType.POLYGON_MAINNET,
-            toDate =toDate,
-            fromDate =fromDate
-        )
-        println("response : " + res.block())
-    }
-
-    @Test
-    fun signin() {
+    fun signin1() {
         val request = ValidateRequest(
             address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
             message = "Hello, MetaMask!",
             signature = "0x5714c3d6a6773a614091a9ac81dc8f4f6a0219349ddb4010edb6595c47b158814a9265e2c17aa7f7cfe479636a96c9f93cd665b213cc76b005c4b742edb6b27c1c",
-            network = NetworkType.POLYGON
+            chain = ChainType.POLYGON_MAINNET
         )
-        walletService.signInOrSignUp(request).block()
+        val response  = walletService.signInOrSignUp(request).block()
+
+        println(response?.wallet?.balance)
+        println(response?.tokens?.accessToken)
+        println(response?.tokens?.refreshToken)
     }
 
     @Test
-    fun tansferasdas() {
-        val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
-        walletTransactionService.readAllTransactions(address).collectList().block()
-    }
+    fun signin2() {
+        val request = ValidateRequest(
+            address = "0x9bDeF468ae33b09b12a057B4c9211240D63BaE65",
+            message = "Hello, MetaMask!",
+            signature = "0x5714c3d6a6773a614091a9ac81dc8f4f6a0219349ddb4010edb6595c47b158814a9265e2c17aa7f7cfe479636a96c9f93cd665b213cc76b005c4b742edb6b27c1c",
+            chain = ChainType.POLYGON_MAINNET
+        )
+        val response  = walletService.signInOrSignUp(request).block()
 
-    @Test
-    fun asd() {
-        val res = "2024-03-19T12:56:07Z".toTimestamp()
-        println(res)
+        println(response?.wallet?.balance)
+        println(response?.tokens?.accessToken)
+        println(response?.tokens?.refreshToken)
     }
 
     @Test
     fun readAllNfts() {
         val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
-        nftService.readAllNftByWallet(address).blockFirst()
+//        val nftList= nftService.readAllNftByWallet(address,null).blockLast()
+        val page = PageRequest.of(0,10)
+        val response = walletController.getAllNft(null,address,page).block()
+
+        response?.content?.map {
+            println(it.id)
+            println(it.tokenAddress)
+        }
+
     }
+
+    @Test
+    fun testFindWalletByAddress() {
+        val walletAddress = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
+        val wallet = walletRepository.findAllByAddress(walletAddress).next().block()
+        assertNotNull(wallet)
+        println("Wallet found: ${wallet?.address}")
+    }
+
+    // @Test
+    // fun test2() {
+    //     val response = AdminTransferResponse(
+    //         id= 3L,
+    //         walletAddress = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
+    //         nftId = null,
+    //         timestamp =  Instant.now().toEpochMilli(),
+    //         accountType = AccountType.DEPOSIT,
+    //         transferType = TransferType.ERC20,
+    //         balance = BigDecimal(0.8),
+    //         chainType = ChainType.POLYGON_MAINNET
+    //     )
+    //     accountService.saveAccount(response).block()
+    //
+    //     Thread.sleep(100000)
+    // }
+
+    @Test
+    fun getAccountLog() {
+        val account = accountLogRepository.findById(1L).block()
+        println(account?.accountId)
+        println(account?.accountType)
+    }
+
+//    @Test
+//    fun findAllAccountByAddress() {
+//        val walletAddress = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
+//        accountService.findByAccountByAddress(walletAddress)
+//    }
+    
+    @Test
+    fun redistest() {
+        val res = redisService.getNft(3L).block()
+        println(res.toString())
+    }
+
+    @Test
+    fun testasd(){
+        val test = com.api.wallet.domain.Test(
+            null,
+            MyEnum.APPLE
+        )
+        testRepository.save(test).block()
+    }
+
+    @Test
+    fun depositTest() {
+        val req = DepositRequest(
+            chainType = ChainType.POLYGON_MAINNET,
+            transactionHash = "0x21b77e341d43a1b58f5a40c648e4878e532ec1011efcec3fe82a7e23d35c5b2f"
+        )
+
+        accountService.depositProcess(
+            address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
+            request = req
+        ).block()
+
+        Thread.sleep(8000)
+    }
+
+
+    @Test
+    fun withdrawERC20(){
+        val req = WithdrawERC20Request(
+            chainType = ChainType.POLYGON_AMOY,
+            amount = BigDecimal("1")
+        )
+
+        accountService.withdrawERC20Process(address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867" , req)
+            .block()
+
+        Thread.sleep(5000)
+
+    }
+
+
+    @Test
+    fun withdrawERC721(){
+        val req = WithdrawERC721Request(
+            nftId = 15L
+        )
+        accountService.withdrawERC721Process(address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867" , req)
+            .block()
+
+        Thread.sleep(8000)
+
+    }
+
+    @Test
+    fun configTest(){
+        val res = accountLogRepository.findById(4).block()
+        println("res : " + res.toString())
+
+    }
+
+    @Test
+    fun accountTransfer() {
+        val request = TransferRequest(
+            fromAddress ="0x01b82b4aa3f66f213d62d53e829bc172a6a72867",
+            toAddress =  "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
+            chainType =  ChainType.POLYGON_MAINNET,
+            amount = BigDecimal(2),
+            nftId = 2L
+        )
+        val res = transferService.transfer(request).block()
+        println(res.toString())
+
+    }
+
+    // @Test
+    // fun transferNft() {
+    //     transferService.transferNft()
+    // }
 
 
 }

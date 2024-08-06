@@ -4,9 +4,10 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 
 @Table("wallet_nft")
-class WalletNft(
+data class WalletNft(
     @Id val id: Long? = null,
-    val walletId: String,
-    val nftId: String
+    val walletId: Long,
+    val nftId: Long,
+    val amount: Int,
 ) {
 }

@@ -1,13 +1,13 @@
 package com.api.wallet.controller.dto.request
 
-import com.api.wallet.enums.NetworkType
+import com.api.wallet.enums.ChainType
 
 
 data class ValidateRequest(
     val address: String,
     val message: String,
     val signature: String,
-    val network: NetworkType,
+    val chain: ChainType,
 ) {
     companion object {
         fun String.isValidEthereumAddress(): Boolean {
