@@ -273,7 +273,7 @@ class AccountService(
             .flatMap { accountNft ->
                 println("statusType : " + newListing.statusType)
                 val updatedStatus = when (newListing.statusType) {
-                    StatusType.RESERVATION_CANCEL, StatusType.CANCEL, StatusType.EXPIRED -> StatusType.NONE
+                    StatusType.RESERVATION_CANCEL, StatusType.CANCEL, StatusType.EXPIRED, StatusType.LEDGER-> StatusType.NONE
                     StatusType.ACTIVED -> StatusType.LISTING
                     else -> newListing.statusType
                 }
