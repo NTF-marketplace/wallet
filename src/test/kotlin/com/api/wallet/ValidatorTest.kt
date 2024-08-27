@@ -106,7 +106,7 @@ class ValidatorTest(
         val response  = walletService.signInOrSignUp(request).block()
 
         println(response?.wallet?.balance)
-        println(response?.tokens?.accessToken)
+        println("accessToken : " + response?.tokens?.accessToken)
         println(response?.tokens?.refreshToken)
     }
 

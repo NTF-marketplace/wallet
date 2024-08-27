@@ -18,6 +18,7 @@ class TransferService(
 
     @Transactional
     fun transfer(request: TransferRequest): Mono<ResponseEntity<String>> {
+        println("request : " + request.toString())
         return findAndValidateAccounts(request)
             .flatMap { (fromAccount, toAccount) ->
                 updateBalances(fromAccount, toAccount, request.amount)
