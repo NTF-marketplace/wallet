@@ -130,7 +130,6 @@ class NftService(
         oldIds: List<Long>,
         wallet: Wallet
     ): Flux<Void> {
-
         val idsToDelete = oldIds.filter { it !in newIds }
 
         return Flux.fromIterable(idsToDelete)

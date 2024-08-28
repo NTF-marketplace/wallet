@@ -23,6 +23,8 @@ repositories {
 extra["springCloudVersion"] = "2023.0.2"
 
 dependencies {
+    implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j")
+    implementation("org.springframework.retry:spring-retry")
     implementation("org.springframework.cloud:spring-cloud-starter-config")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-webflux")

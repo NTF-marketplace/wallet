@@ -20,6 +20,7 @@ import com.api.wallet.service.api.NftService
 import com.api.wallet.service.api.WalletService
 import com.api.wallet.service.external.admin.AdminApiService
 import com.api.wallet.service.external.infura.InfuraApiService
+import com.api.wallet.service.external.nft.NftApiService
 import com.api.wallet.validator.SignatureValidator
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -49,6 +50,7 @@ class ValidatorTest(
     @Autowired private val redisService: RedisService,
     @Autowired private val adminApiService: AdminApiService,
     @Autowired private val transferService: TransferService,
+    @Autowired private val nftApiService: NftApiService,
 ) {
 
     @Test
@@ -262,4 +264,9 @@ class ValidatorTest(
     // }
 
 
+    @Test
+    fun circuitbreakerTest() {
+        nftApiService.getByWalletNft("0x01b72b4aa3f66f213d62d53e829bc172a6a72867",ChainType.POLYGON_MAINNET).blockLast()
+
+    }
 }

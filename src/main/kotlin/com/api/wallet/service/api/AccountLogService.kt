@@ -5,7 +5,6 @@ import com.api.wallet.controller.dto.response.AccountLogResponse
 import com.api.wallet.controller.dto.response.NftMetadataResponse
 import com.api.wallet.domain.account.log.AccountLog
 import com.api.wallet.domain.account.log.AccountLogRepository
-import com.api.wallet.domain.nft.repository.NftRepository
 import com.api.wallet.enums.AccountType
 import com.api.wallet.enums.TransferType
 import com.api.wallet.event.AccountEvent
@@ -22,7 +21,6 @@ import java.math.BigDecimal
 class AccountLogService(
     private val accountLogRepository: AccountLogRepository,
     private val accountService: AccountService,
-    private val nftRepository: NftRepository,
     private val redisService: RedisService,
 ) {
     fun findAllByAccountLog(address: String, accountType: AccountType?, pageable: Pageable): Mono<Page<AccountLogResponse>> {
