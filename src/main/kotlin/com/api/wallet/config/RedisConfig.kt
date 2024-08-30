@@ -48,7 +48,8 @@ class RedisConfig {
 
     @Bean
     fun objectMapper(): ObjectMapper {
-        return jacksonObjectMapper().registerModule(KotlinModule())
+        return jacksonObjectMapper().registerModule(KotlinModule.Builder()
+            .build())
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     }
 

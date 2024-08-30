@@ -1,9 +1,8 @@
-package com.api.wallet.service
+package com.api.wallet.service.api
 
 import com.api.wallet.controller.dto.request.TransferRequest
 import com.api.wallet.domain.account.Account
 import com.api.wallet.enums.AccountType
-import com.api.wallet.service.api.AccountService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service

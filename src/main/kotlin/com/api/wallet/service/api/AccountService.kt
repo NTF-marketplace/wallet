@@ -55,10 +55,7 @@ class AccountService(
 
     fun checkAccountNftId(address: String, nftId: Long): Mono<Boolean> {
         return accountNftRepository.findByNftIdAndWalletAddressAndChainType(nftId, address)
-            .flatMap {
-                Mono.just(true)
-            }
-            .switchIfEmpty(Mono.just(false))
+            .hasElement()
     }
 
     fun checkAccountBalance(address: String, chainType: ChainType, requiredBalance: BigDecimal): Mono<Boolean> {
@@ -250,8 +247,6 @@ class AccountService(
     }
 
 
-    //상태처리
-    // accountNft가 LISTING,AUCTION,RESERVATION이 아닌건 바로 에러반환
     fun withdrawERC721Process(address: String, request: WithdrawERC721Request): Mono<ResponseEntity<Void>> {
         return accountNftRepository.findByNftIdAndWalletAddressAndChainType(request.nftId, address)
             .switchIfEmpty(Mono.error(InsufficientResourcesException("NFT not found for account")))

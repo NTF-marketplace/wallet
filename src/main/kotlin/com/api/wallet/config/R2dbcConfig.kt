@@ -49,7 +49,7 @@ class R2dbcConfig : AbstractR2dbcConfiguration(){
 
         val poolConfig = ConnectionPoolConfiguration.builder()
             .connectionFactory(PostgresqlConnectionFactory(config))
-            .maxSize(2)
+            .maxSize(10)
             .build()
 
         return ConnectionPool(poolConfig)
