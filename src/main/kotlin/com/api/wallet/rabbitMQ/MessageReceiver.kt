@@ -32,15 +32,6 @@ class MessageReceiver(
 
     @RabbitListener(bindings = [QueueBinding(
         value = Queue(name = "", durable = "false", exclusive = "true", autoDelete = "true"),
-        exchange = Exchange(value = "nftExchange", type = ExchangeTypes.FANOUT)
-    )])
-    fun nftMessage(nft: NftResponse) {
-        nftService.save(nft)
-            .subscribe()
-    }
-
-    @RabbitListener(bindings = [QueueBinding(
-        value = Queue(name = "", durable = "false", exclusive = "true", autoDelete = "true"),
         exchange = Exchange(value = "listingExchange", type = ExchangeTypes.FANOUT)
     )])
     fun listingMessage(listing: ListingResponse){

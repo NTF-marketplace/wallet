@@ -9,14 +9,12 @@ import com.api.wallet.controller.dto.request.WithdrawERC721Request
 import com.api.wallet.domain.TestRepository
 import com.api.wallet.domain.account.log.AccountLogRepository
 import com.api.wallet.domain.wallet.repository.WalletRepository
-import com.api.wallet.enums.AccountType
+import com.api.wallet.domain.walletNft.repository.WalletNftRepository
 import com.api.wallet.enums.ChainType
 import com.api.wallet.enums.MyEnum
-import com.api.wallet.enums.TransferType
-import com.api.wallet.rabbitMQ.dto.AdminTransferResponse
-import com.api.wallet.service.TransferService
 import com.api.wallet.service.api.AccountService
 import com.api.wallet.service.api.NftService
+import com.api.wallet.service.api.TransferService
 import com.api.wallet.service.api.WalletService
 import com.api.wallet.service.external.admin.AdminApiService
 import com.api.wallet.service.external.infura.InfuraApiService
@@ -52,6 +50,9 @@ class ValidatorTest(
     @Autowired private val transferService: TransferService,
     @Autowired private val nftApiService: NftApiService,
 ) {
+
+    @Autowired
+    private lateinit var walletNftRepository: WalletNftRepository
 
     @Test
     fun SignatureValidatorRequestTest() {
@@ -131,7 +132,7 @@ class ValidatorTest(
     fun readAllNfts() {
         val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
 //        val nftList= nftService.readAllNftByWallet(address,null).blockLast()
-        val page = PageRequest.of(0,10)
+        val page = PageRequest.of(0,20)
         val response = walletController.getAllNft(null,address,page).block()
 
         response?.content?.map {
@@ -268,5 +269,11 @@ class ValidatorTest(
     fun circuitbreakerTest() {
         nftApiService.getByWalletNft("0x01b72b4aa3f66f213d62d53e829bc172a6a72867",ChainType.POLYGON_MAINNET).blockLast()
 
+    }
+
+    @Test
+    fun walletNftTest() {
+        val res =walletNftRepository.deleteByNftIdAndWalletId(nftId = 10L,3).block()
+        println(res.toString())
     }
 }

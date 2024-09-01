@@ -73,7 +73,5 @@ class NftApiService(
             .retrieve()
             .bodyToMono(NftMetadataResponse::class.java)
     }
-
-
 }
 

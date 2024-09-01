@@ -11,7 +11,6 @@ import com.api.wallet.domain.account.Account
 import com.api.wallet.domain.account.AccountRepository
 import com.api.wallet.domain.account.nft.AccountNft
 import com.api.wallet.domain.account.nft.AccountNftRepository
-import com.api.wallet.domain.nft.repository.NftRepository
 import com.api.wallet.domain.wallet.Wallet
 import com.api.wallet.domain.wallet.repository.WalletRepository
 import com.api.wallet.enums.AccountType
@@ -45,7 +44,6 @@ class AccountService(
     private val accountRepository: AccountRepository,
     private val walletRepository: WalletRepository,
     @Lazy private val walletService: WalletService,
-    private val nftRepository: NftRepository,
     private val eventPublisher: ApplicationEventPublisher,
     private val accountNftRepository: AccountNftRepository,
     private val priceStorage: PriceStorage,
@@ -164,7 +162,7 @@ class AccountService(
     }
 
     fun depositERC721(account: Account, nftId:Long, timestamp:Long): Mono<Void> {
-        return nftRepository.findById(nftId!!)
+        return redisService.getNft(nftId)
             .flatMap { nft ->
                 val accountNft = AccountNft(
                     id = null,

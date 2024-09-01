@@ -14,12 +14,9 @@ class WalletNftRepositorySupportImpl(
         SELECT 
             wn.id AS wn_id, 
             wn.wallet_id AS wallet_address, 
-            n.id AS nft_id, 
-            n.token_address AS nft_token_address, 
-            n.token_id AS nft_token_id 
+            wn.nft_id AS nft_id
         FROM wallet_nft wn 
-        JOIN wallet w ON wn.wallet_id = w.id 
-        JOIN nft n ON wn.nft_id = n.id 
+        JOIN wallet w ON wn.wallet_id = w.id  
         WHERE w.address = $1 AND w.chain_type = $2
     """
 
@@ -31,8 +28,6 @@ class WalletNftRepositorySupportImpl(
                     id = (row.get("wn_id") as Number).toLong(),
                     walletId = (row.get("wallet_address") as Number).toLong(),
                     nftId = (row.get("nft_id") as Number).toLong(),
-                    nftTokenAddress = row.get("nft_token_address", String::class.java)!!,
-                    nftTokenId = row.get("nft_token_id", String::class.java)!!
                 )
             }
             .all()

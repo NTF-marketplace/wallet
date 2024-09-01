@@ -1,6 +1,5 @@
 package com.api.wallet.util
 
-import com.api.wallet.domain.nft.Nft
 import com.api.wallet.enums.ChainType
 import com.api.wallet.enums.TokenType
 import com.api.wallet.service.external.nft.dto.NftResponse
@@ -46,12 +45,4 @@ object Util {
             }
     }
 
-    fun toNftResponse(nft: Nft): NftResponse {
-        return NftResponse(
-            id = nft.id,
-            tokenId = nft.tokenId,
-            tokenAddress = nft.tokenAddress,
-            chainType = nft.chainType
-        )
-    }
 }

@@ -76,7 +76,6 @@ class WalletService(
             walletRepository.findByAddressAndChainType(address, chain)
                 .switchIfEmpty {
                     userRepository.save(Users(nickName = "Unknown"))
-                        .subscribeOn(Schedulers.boundedElastic())
                         .flatMap { user ->
                             walletRepository.save(
                                 Wallet(
@@ -87,7 +86,7 @@ class WalletService(
                                     createdAt = System.currentTimeMillis(),
                                     updatedAt = System.currentTimeMillis()
                                 )
-                            ).subscribeOn(Schedulers.boundedElastic())
+                            )
                         }
                 }
                 .flatMap { wallet ->

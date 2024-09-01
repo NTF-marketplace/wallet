@@ -27,10 +27,6 @@ class RabbitMQConfig {
     fun transferExchange() = createFanoutExchange("transferExchange")
 
     @Bean
-    fun nftExchange() = createFanoutExchange("nftExchange")
-
-
-    @Bean
     fun listingExchange() = createFanoutExchange("listingExchange")
 
      @Bean
