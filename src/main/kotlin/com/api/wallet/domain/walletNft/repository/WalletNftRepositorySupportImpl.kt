@@ -23,13 +23,7 @@ class WalletNftRepositorySupportImpl(
         return r2dbcEntityTemplate.databaseClient.sql(query)
             .bind(0, address)
             .bind(1, chainType)
-            .map { row, data ->
-                WalletNftDto(
-                    id = (row.get("wn_id") as Number).toLong(),
-                    walletId = (row.get("wallet_address") as Number).toLong(),
-                    nftId = (row.get("nft_id") as Number).toLong(),
-                )
-            }
+            .map { row, _ -> WalletNftDto.fromRow(row) }
             .all()
     }
 
