@@ -83,7 +83,7 @@ class AccountController(
     fun depositAccount(
         @RequestHeader("X-Auth-Address") address: String,
         @RequestBody request: DepositRequest,
-    ): Mono<ResponseEntity<Void>> {
+    ): Mono<Void> {
         return accountService.depositProcess(address,request)
     }
 

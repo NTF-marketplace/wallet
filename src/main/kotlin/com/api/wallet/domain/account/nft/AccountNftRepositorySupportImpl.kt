@@ -10,23 +10,22 @@ class AccountNftRepositorySupportImpl(
 ): AccountNftRepositorySupport {
     override fun findByNftIdAndWalletAddressAndChainType(
         nftId: Long,
-        address: String
+        address: String,
+        nftChainType: ChainType,
     ): Mono<AccountNft> {
         val query = """
             SELECT an.*
             FROM account_nft an
-            JOIN nft n ON an.nft_id = n.id
             JOIN account a ON an.account_id = a.id
             JOIN wallet w ON a.wallet_id = w.id
-            WHERE n.id = $1 AND w.address = $2 AND n.chain_type = (
-                SELECT chain_type FROM nft WHERE id = $1
-            )
+            WHERE an.nft_id = $1 AND w.address = $2 AND w.chain_type = $3
         """
 
         return r2dbcEntityTemplate.databaseClient
             .sql(query)
             .bind(0, nftId)
             .bind(1, address)
+            .bind(2, nftChainType)
             .map { row, _ ->
                 AccountNft(
                     id = (row.get("id") as Number).toLong(),

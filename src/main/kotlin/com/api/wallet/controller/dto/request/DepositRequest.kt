@@ -5,4 +5,5 @@ import com.api.wallet.enums.ChainType
 data class DepositRequest(
     val chainType: ChainType,
     val transactionHash: String,
+    val accountLongId: Long?,
 )

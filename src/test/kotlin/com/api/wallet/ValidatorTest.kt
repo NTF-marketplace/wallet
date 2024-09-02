@@ -8,6 +8,7 @@ import com.api.wallet.controller.dto.request.WithdrawERC20Request
 import com.api.wallet.controller.dto.request.WithdrawERC721Request
 import com.api.wallet.domain.TestRepository
 import com.api.wallet.domain.account.log.AccountLogRepository
+import com.api.wallet.domain.account.nft.AccountNftRepository
 import com.api.wallet.domain.wallet.repository.WalletRepository
 import com.api.wallet.domain.walletNft.repository.WalletNftRepository
 import com.api.wallet.enums.ChainType
@@ -50,6 +51,9 @@ class ValidatorTest(
     @Autowired private val transferService: TransferService,
     @Autowired private val nftApiService: NftApiService,
 ) {
+
+    @Autowired
+    private lateinit var accountNftRepository: AccountNftRepository
 
     @Autowired
     private lateinit var walletNftRepository: WalletNftRepository
@@ -195,48 +199,48 @@ class ValidatorTest(
         testRepository.save(test).block()
     }
 
-    @Test
-    fun depositTest() {
-        val req = DepositRequest(
-            chainType = ChainType.POLYGON_MAINNET,
-            transactionHash = "0x21b77e341d43a1b58f5a40c648e4878e532ec1011efcec3fe82a7e23d35c5b2f"
-        )
-
-        accountService.depositProcess(
-            address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
-            request = req
-        ).block()
-
-        Thread.sleep(8000)
-    }
-
-
-    @Test
-    fun withdrawERC20(){
-        val req = WithdrawERC20Request(
-            chainType = ChainType.POLYGON_AMOY,
-            amount = BigDecimal("1")
-        )
-
-        accountService.withdrawERC20Process(address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867" , req)
-            .block()
-
-        Thread.sleep(5000)
-
-    }
-
-
-    @Test
-    fun withdrawERC721(){
-        val req = WithdrawERC721Request(
-            nftId = 15L
-        )
-        accountService.withdrawERC721Process(address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867" , req)
-            .block()
-
-        Thread.sleep(8000)
-
-    }
+//    @Test
+//    fun depositTest() {
+//        val req = DepositRequest(
+//            chainType = ChainType.POLYGON_MAINNET,
+//            transactionHash = "0x21b77e341d43a1b58f5a40c648e4878e532ec1011efcec3fe82a7e23d35c5b2f"
+//        )
+//
+//        accountService.depositProcess(
+//            address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
+//            request = req
+//        ).block()
+//
+//        Thread.sleep(8000)
+//    }
+//
+//
+//    @Test
+//    fun withdrawERC20(){
+//        val req = WithdrawERC20Request(
+//            chainType = ChainType.POLYGON_AMOY,
+//            amount = BigDecimal("1")
+//        )
+//
+//        accountService.withdrawERC20Process(address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867" , req)
+//            .block()
+//
+//        Thread.sleep(5000)
+//
+//    }
+//
+//
+//    @Test
+//    fun withdrawERC721(){
+//        val req = WithdrawERC721Request(
+//            nftId = 15L
+//        )
+//        accountService.withdrawERC721Process(address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867" , req)
+//            .block()
+//
+//        Thread.sleep(8000)
+//
+//    }
 
     @Test
     fun configTest(){
@@ -276,4 +280,11 @@ class ValidatorTest(
         val res =walletNftRepository.deleteByNftIdAndWalletId(nftId = 10L,3).block()
         println(res.toString())
     }
+
+    @Test
+    fun accountNft() {
+        val res = accountNftRepository.findByNftIdAndWalletAddressAndChainType(3L,"0x01b72b4aa3f66f213d62d53e829bc172a6a72867",ChainType.POLYGON_MAINNET).block()
+        println(res.toString())
+    }
+
 }

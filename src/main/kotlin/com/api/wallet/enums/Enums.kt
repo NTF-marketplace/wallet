@@ -29,4 +29,5 @@ enum class TokenType {
         MATIC, ETH
 }
 
+enum class TransaionStatusType { PENDING,FAIL, SUCCESS }
 

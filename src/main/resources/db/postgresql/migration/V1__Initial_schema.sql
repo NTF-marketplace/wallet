@@ -27,6 +27,10 @@ CREATE TYPE status_type AS ENUM(
     'RESERVATION', 'ACTIVED', 'NONE','LISTING','AUCTION'
     );
 
+CREATE TYPE transaction_status_type AS ENUM(
+    'PENDING', 'FAIL', 'SUCCESS'
+    );
+
 
 CREATE TABLE IF NOT EXISTS test (
     id SERIAL PRIMARY KEY,
@@ -78,14 +82,29 @@ CREATE TABLE IF NOT EXISTS account_nft (
     status status_type not null
 );
 
-CREATE TABLE IF NOT EXISTS account_log (
+-- CREATE TABLE IF NOT EXISTS account_log (
+--     id SERIAL PRIMARY KEY,
+--     account_id BIGINT REFERENCES account(id),
+--     nft_id BIGINT not null,
+--     timestamp BIGINT not null,
+--     account_type account_type not null,
+--     transfer_type transfer_type not null,
+--     balance DECIMAL(19, 4)
+-- );
+
+CREATE TABLE IF NOT EXISTS account_detail_log (
     id SERIAL PRIMARY KEY,
-    account_id BIGINT REFERENCES account(id),
-    nft_id BIGINT not null,
-    timestamp BIGINT not null,
-    account_type account_type not null,
+    nft_id BIGINT,
     transfer_type transfer_type not null,
     balance DECIMAL(19, 4)
 );
 
+CREATE TABLE IF NOT EXISTS account_log(
+    id SERIAL PRIMARY KEY,
+    account_id BIGINT REFERENCES account(id),
+    account_type account_type not null,
+    account_detail_log_id BIGINT REFERENCES account_detail_log(id),
+    transaction_status_type transaction_status_type not null,
+    created_at BIGINT not null
+);
 

@@ -18,7 +18,7 @@ class AdminApiService(
         .baseUrl(adminApiProperties.uri)
         .build()
 
-    fun createDeposit(address: String, request: DepositRequest): Mono<ResponseEntity<Void>> {
+    fun createDeposit(address: String, request: DepositRequest): Mono<Void> {
         return webClient.post()
             .uri {
                 it.path("/deposit")
@@ -28,8 +28,9 @@ class AdminApiService(
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(request)
             .retrieve()
-            .toBodilessEntity()
+            .bodyToMono(Void::class.java)
     }
+
 
     fun withdrawERC20(address: String, request:WithdrawERC20Request): Mono<ResponseEntity<Void>> {
         return webClient.post()
