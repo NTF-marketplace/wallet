@@ -148,7 +148,6 @@ class AccountService(
     }
 
 
-
     fun processERC721Transfer(account: Account, accountType: AccountType,nftId: Long): Mono<AccountDetailLog> {
         return when (accountType) {
             AccountType.DEPOSIT -> depositERC721(account, nftId)

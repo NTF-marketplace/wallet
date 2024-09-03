@@ -34,6 +34,7 @@ class MessageReceiver(
             accountService.processTransfer(transfer).subscribe()
             channel.basicAck(deliveryTag, false)
         } catch (e: Exception) {
+            // 다시 큐에 할당
             channel.basicNack(deliveryTag, false, true)
         }
     }

@@ -30,4 +30,5 @@ enum class TokenType {
 }
 
 enum class TransaionStatusType { PENDING,FAIL, SUCCESS }
+enum class OrderType { LISTING, AUCTION }
 
