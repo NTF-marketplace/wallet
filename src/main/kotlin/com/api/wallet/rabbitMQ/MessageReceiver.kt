@@ -24,7 +24,8 @@ class MessageReceiver(
     )])
 
     fun transferMessage(transfer: AdminTransferResponse) {
-        accountService.saveAccountTransfer(transfer)
+        println("trasfer : " + transfer.toString())
+        accountService.processTransfer(transfer)
             .doOnSuccess { println("Account successfully saved") }
             .doOnError { error -> println("Error occurred: ${error.message}") }
             .subscribe()

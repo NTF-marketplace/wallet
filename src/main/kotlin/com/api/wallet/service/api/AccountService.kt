@@ -16,7 +16,6 @@ import com.api.wallet.domain.account.nft.AccountNftRepository
 import com.api.wallet.domain.wallet.Wallet
 import com.api.wallet.domain.wallet.repository.WalletRepository
 import com.api.wallet.enums.*
-import com.api.wallet.rabbitMQ.dto.AdminTransferDetailResponse
 import com.api.wallet.rabbitMQ.dto.AdminTransferResponse
 import com.api.wallet.rabbitMQ.dto.AuctionResponse
 import com.api.wallet.rabbitMQ.dto.ListingResponse
@@ -30,6 +29,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
@@ -47,6 +47,7 @@ class AccountService(
     private val adminApiService: AdminApiService,
     @Lazy private val accountLogService: AccountLogService,
     private val accountLogRepository: AccountLogRepository,
+    private val accountDetailLogService: AccountDetailLogService,
     ) {
 
     fun checkAccountNftId(address: String, nftId: Long): Mono<Boolean> {
@@ -80,10 +81,8 @@ class AccountService(
         }
     }
 
-
-    // 만약 account가 없으면 어떻게 되는건가?
     fun findByAccountByWallet(wallet: Wallet): Mono<AccountResponse> {
-        return accountRepository.findByWalletId(wallet.id!!)
+        return findByAccountOrCreate(wallet)
             .map { account ->
                 val usdt = priceStorage.get(wallet.chainType.toTokenType())
                 account.toResponse(usdt,wallet.chainType)
@@ -121,29 +120,27 @@ class AccountService(
         }
     }
 
-
-    fun saveAccountTransfer(transfer: AdminTransferResponse): Mono<Void> {
-        return accountRepository.findById(transfer.accountId)
-            .flatMap { processTransfer(it,transfer) }
-            .then()
-    }
-
-
-    private fun processTransfer(account: Account, transfer: AdminTransferResponse): Mono<Void> {
-        return accountLogRepository.findByAccountId(account.id!!)
+    @Transactional
+    fun processTransfer(transfer: AdminTransferResponse): Mono<Void> {
+        return accountLogRepository.findById(transfer.accountLogId)
             .flatMap { accountLog ->
-                val updatedLog = accountLog.update(transactionStatusType = transfer.transactionStatusType,null)
+                val updatedLog = accountLog.update(transactionStatusType = transfer.transactionStatusType, null)
                 accountLogRepository.save(updatedLog)
             }
             .flatMap { updatedLog ->
                 if (transfer.transactionStatusType == TransaionStatusType.SUCCESS) {
-                    when (transfer.transferType) {
-                        TransferType.ERC721 -> processERC721Transfer(account, transfer.accountType, transfer.adminTransferDetailResponse.nftId!!)
-                        TransferType.ERC20 -> processERC20Transfer(account, transfer.accountType, transfer.adminTransferDetailResponse.balance!!)
-                    }.flatMap {
-                        val logWithDetailId = updatedLog.copy(accountDetailLogId = it.id)
-                        accountLogRepository.save(logWithDetailId).then()
-                    }
+                    accountRepository.findById(updatedLog.accountId)
+                        .flatMap { account ->
+                            when (transfer.transferType) {
+                                TransferType.ERC721 -> processERC721Transfer(account, transfer.accountType, transfer.adminTransferDetailResponse?.nftId!!)
+                                TransferType.ERC20 -> processERC20Transfer(account, transfer.accountType, transfer.adminTransferDetailResponse?.balance!!)
+                            }
+                        }
+                        .flatMap { accountDetailLog ->
+                            val logWithDetailId = updatedLog.copy(accountDetailLogId = accountDetailLog.id)
+                            accountLogRepository.save(logWithDetailId)
+                                .then()
+                        }
                 } else {
                     Mono.just(updatedLog).then()
                 }
@@ -169,7 +166,7 @@ class AccountService(
                 )
                 accountNftRepository.save(accountNft)
                     .flatMap { savedAccountNft ->
-                        accountLogService.saveAccountNft(
+                        accountDetailLogService.saveAccountNft(
                               savedAccountNft,
                               TransferType.ERC721
                         )
@@ -183,7 +180,7 @@ class AccountService(
             .flatMap { accountNft ->
                 accountNftRepository.delete(accountNft)
                     .then(
-                        accountLogService.saveAccountNft(accountNft, TransferType.ERC721)
+                        accountDetailLogService.saveAccountNft(accountNft, TransferType.ERC721)
                     )
             }
     }
@@ -198,8 +195,8 @@ class AccountService(
             }
 
             accountRepository.save(updatedAccount)
-                .flatMap { savedAccount ->
-                    accountLogService.saveAccountLog(TransferType.ERC20,savedAccount.balance)
+                .flatMap {
+                    accountDetailLogService.saveAccountLog(TransferType.ERC20,balance)
                 }
         } catch (ex: RuntimeException) {
             Mono.error(ex)
@@ -213,20 +210,17 @@ class AccountService(
             .flatMap { account ->
                 accountLogService.save(account.id!!, AccountType.DEPOSIT)
                     .map { savedAccountLogId ->
-                        request.copy(accountLongId = savedAccountLogId.id)
+                        request.copy(accountLogId = savedAccountLogId.id)
                     }
             }
             .flatMap { updatedRequest ->
                 adminApiService.createDeposit(address, updatedRequest)
-            }
-            .then()
+            }.then()
     }
 
-    fun withdrawERC20Process(address: String, request: WithdrawERC20Request): Mono<ResponseEntity<Void>> {
-        return walletRepository.findByAddressAndChainType(address, request.chainType)
-            .flatMap { wallet ->
-                findByAccountOrCreate(wallet)
-            }
+    fun withdrawERC20Process(address: String, request: WithdrawERC20Request): Mono<Void> {
+        return findAccountByAddress(address,request.chainType)
+            .next()
             .flatMap { account ->
                 if (account.balance >= request.amount) {
                     accountLogService.save(account.id!!, AccountType.WITHDRAW)
@@ -237,35 +231,23 @@ class AccountService(
                 } else {
                     Mono.error(InsufficientResourcesException("Insufficient balance"))
                 }
-            }
-            .map { ResponseEntity.ok().build<Void>() }
-            .onErrorResume { e ->
-                when (e) {
-                    is InsufficientResourcesException -> Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build())
-                    else -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build())
-                }
-            }
+            }.then()
     }
 
 
-    fun withdrawERC721Process(address: String, request: WithdrawERC721Request): Mono<ResponseEntity<Void>> {
+    fun withdrawERC721Process(address: String, request: WithdrawERC721Request): Mono<Void> {
         return redisService.getNft(request.nftId).flatMap {
             accountNftRepository.findByNftIdAndWalletAddressAndChainType(it.id, address,it.chainType)
                 .switchIfEmpty(Mono.error(InsufficientResourcesException("NFT not found for account")))
                 .flatMap { accountNft ->
                     accountLogService.save(accountNft.accountId, AccountType.WITHDRAW)
                         .flatMap { accountLog ->
-                            val updatedRequest = request.copy(accountId = accountLog.id!!)
+                            val updatedRequest = request.copy(accountLogId = accountLog.id!!)
                             adminApiService.withdrawERC721(address, updatedRequest)
                                 .map { ResponseEntity<Void>(HttpStatus.OK) }
                         }
                 }
-        }.onErrorResume { e ->
-            when (e) {
-                is InsufficientResourcesException -> Mono.just(ResponseEntity<Void>(HttpStatus.BAD_REQUEST))
-                else -> Mono.just(ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR))
-            }
-        }
+        }.then()
     }
 
 
@@ -273,7 +255,6 @@ class AccountService(
         return redisService.getNft(newListing.nftId).flatMap {
             accountNftRepository.findByNftIdAndWalletAddressAndChainType(it.id, newListing.address, it.chainType)
                 .flatMap { accountNft ->
-                    println("statusType : " + newListing.statusType)
                     val updatedStatus = when (newListing.statusType) {
                         StatusType.RESERVATION_CANCEL, StatusType.CANCEL, StatusType.EXPIRED, StatusType.LEDGER -> StatusType.NONE
                         StatusType.ACTIVED -> StatusType.LISTING

@@ -18,7 +18,7 @@ class AdminApiService(
         .baseUrl(adminApiProperties.uri)
         .build()
 
-    fun createDeposit(address: String, request: DepositRequest): Mono<Void> {
+    fun createDeposit(address: String, request: DepositRequest): Mono<ResponseEntity<Void>> {
         return webClient.post()
             .uri {
                 it.path("/deposit")
@@ -28,7 +28,12 @@ class AdminApiService(
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(Void::class.java)
+            .onStatus({ status -> status.is4xxClientError || status.is5xxServerError }) { response ->
+                response.bodyToMono(String::class.java).flatMap { body ->
+                    Mono.error(RuntimeException("Failed to create deposit: ${response.statusCode()} - $body"))
+                }
+            }
+            .toBodilessEntity()
     }
 
 

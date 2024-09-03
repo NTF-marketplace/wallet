@@ -4,16 +4,12 @@ import com.api.wallet.RedisService
 import com.api.wallet.controller.dto.response.AccountLogDetailResponse
 import com.api.wallet.controller.dto.response.AccountLogResponse
 import com.api.wallet.controller.dto.response.NftMetadataResponse
-import com.api.wallet.domain.account.Account
 import com.api.wallet.domain.account.detail.AccountDetailLog
 import com.api.wallet.domain.account.detail.AccountDetailLogRepository
 import com.api.wallet.domain.account.log.AccountLog
 import com.api.wallet.domain.account.log.AccountLogRepository
-import com.api.wallet.domain.account.nft.AccountNft
 import com.api.wallet.enums.AccountType
 import com.api.wallet.enums.TransferType
-import com.api.wallet.event.AccountEvent
-import com.api.wallet.event.AccountNftEvent
 import com.api.wallet.util.Util.toPage
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -106,27 +102,6 @@ class AccountLogService(
             detail = detail
         )
     }
-
-    fun saveAccountLog(transferType: TransferType,balance: BigDecimal) : Mono<AccountDetailLog> {
-        val accountDetail = AccountDetailLog(
-            id = null,
-            nftId = null,
-            balance = balance,
-            transferType = transferType
-        )
-        return accountDetailLogRepository.save(accountDetail)
-    }
-
-    fun saveAccountNft(accountNft:AccountNft, transferType: TransferType) : Mono<AccountDetailLog> {
-        val accountDetail = AccountDetailLog(
-            id = null,
-            nftId = accountNft.nftId,
-            balance = null,
-            transferType = transferType
-        )
-        return accountDetailLogRepository.save(accountDetail)
-    }
-
     fun save(accountId: Long, accountType: AccountType): Mono<AccountLog> {
         return accountLogRepository.save(AccountLog(
             accountId = accountId,

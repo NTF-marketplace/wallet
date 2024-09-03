@@ -92,7 +92,7 @@ class AccountController(
     fun withdrawERC20Account(
         @RequestHeader("X-Auth-Address") address: String,
         @RequestBody request: WithdrawERC20Request,
-    ): Mono<ResponseEntity<Void>> {
+    ): Mono<Void> {
         return accountService.withdrawERC20Process(address,request)
     }
     //TODO(check)

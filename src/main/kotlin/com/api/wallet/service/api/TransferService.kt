@@ -59,18 +59,35 @@ class TransferService(
                     }
             }
     }
-
     private fun updateBalances(fromAccount: Account, toAccount: Account, amount: BigDecimal): Mono<Void> {
+        return performTransfer(
+            fromAccount, toAccount,
+            { accountService.processERC20Transfer(it, AccountType.WITHDRAW, balance = amount) },
+            { accountService.processERC20Transfer(it, AccountType.DEPOSIT, balance = amount) }
+        )
+    }
+
+    fun transferNft(fromAccount: Account, toAccount: Account, nftId: Long): Mono<Void> {
+        return performTransfer(
+            fromAccount, toAccount,
+            { accountService.processERC721Transfer(it, AccountType.WITHDRAW, nftId) },
+            { accountService.processERC721Transfer(it, AccountType.DEPOSIT, nftId) }
+        )
+    }
+
+    private fun performTransfer(
+        fromAccount: Account,
+        toAccount: Account,
+        withdrawOperation: (Account) -> Mono<AccountDetailLog>,
+        depositOperation: (Account) -> Mono<AccountDetailLog>
+    ): Mono<Void> {
         return accountLogService.save(fromAccount.id!!, AccountType.WITHDRAW)
             .flatMap { fromAccountLog ->
                 accountLogService.save(toAccount.id!!, AccountType.DEPOSIT)
-                    .doOnSuccess { toAccountLog ->
-                        println("Saved toAccountLog: $toAccountLog")
-                    }
                     .flatMap { toAccountLog ->
                         Mono.zip(
-                            accountService.processERC20Transfer(fromAccount, AccountType.WITHDRAW, balance = amount),
-                            accountService.processERC20Transfer(toAccount, AccountType.DEPOSIT, balance = amount)
+                            withdrawOperation(fromAccount),
+                            depositOperation(toAccount)
                         ).flatMap { tuple ->
                             val fromAccountDetailLog = tuple.t1
                             val toAccountDetailLog = tuple.t2
@@ -86,14 +103,14 @@ class TransferService(
                     }
             }
             .onErrorResume { error ->
-                println("Error during balance update: ${error.message}")
+                println("Error during transfer: ${error.message}")
                 updateAccountLogs(
-                    fromAccountLogId = fromAccount.id!!,
+                    fromAccountLogId = fromAccount.id,
                     fromAccountDetailLog = null,
                     toAccountLogId = toAccount.id!!,
                     toAccountDetailLog = null,
                     transactionStatusType = TransaionStatusType.FAIL
-                ).then(Mono.error(IllegalArgumentException("Failed to update balances: ${error.message}")))
+                ).then(Mono.error(IllegalArgumentException("Failed to perform transfer: ${error.message}")))
             }
     }
 
@@ -117,36 +134,4 @@ class TransferService(
             .then()
     }
 
-    fun transferNft(fromAccount: Account, toAccount: Account, nftId: Long): Mono<Void> {
-        return accountLogService.save(fromAccount.id!!, AccountType.WITHDRAW)
-            .flatMap { fromAccountLog ->
-                accountLogService.save(toAccount.id!!, AccountType.DEPOSIT)
-                    .flatMap { toAccountLog ->
-                        Mono.zip(
-                            accountService.processERC721Transfer(toAccount, AccountType.WITHDRAW, nftId),
-                            accountService.processERC721Transfer(fromAccount, AccountType.DEPOSIT, nftId)
-                        ).flatMap { tuple ->
-                            val fromAccountDetailLog = tuple.t1
-                            val toAccountDetailLog = tuple.t2
-                            updateAccountLogs(
-                                fromAccountLogId = fromAccountLog.id!!,
-                                fromAccountDetailLog = fromAccountDetailLog,
-                                toAccountLogId = toAccountLog.id!!,
-                                toAccountDetailLog = toAccountDetailLog,
-                                transactionStatusType = TransaionStatusType.SUCCESS
-                            )
-                        }
-                    }
-            }
-            .onErrorResume { error ->
-                println("Error during NFT transfer: ${error.message}")
-                updateAccountLogs(
-                    fromAccountLogId = fromAccount.id,
-                    fromAccountDetailLog = null,
-                    toAccountLogId = toAccount.id!!,
-                    toAccountDetailLog = null,
-                    transactionStatusType = TransaionStatusType.FAIL
-                ).then(Mono.error(IllegalArgumentException("Failed to transfer NFT: ${error.message}")))
-            }
-    }
 }

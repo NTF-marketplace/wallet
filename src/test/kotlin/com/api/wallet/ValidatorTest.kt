@@ -199,48 +199,51 @@ class ValidatorTest(
         testRepository.save(test).block()
     }
 
-//    @Test
-//    fun depositTest() {
-//        val req = DepositRequest(
-//            chainType = ChainType.POLYGON_MAINNET,
-//            transactionHash = "0x21b77e341d43a1b58f5a40c648e4878e532ec1011efcec3fe82a7e23d35c5b2f"
-//        )
-//
-//        accountService.depositProcess(
-//            address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
-//            request = req
-//        ).block()
-//
-//        Thread.sleep(8000)
-//    }
-//
-//
-//    @Test
-//    fun withdrawERC20(){
-//        val req = WithdrawERC20Request(
-//            chainType = ChainType.POLYGON_AMOY,
-//            amount = BigDecimal("1")
-//        )
-//
-//        accountService.withdrawERC20Process(address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867" , req)
-//            .block()
-//
-//        Thread.sleep(5000)
-//
-//    }
-//
-//
-//    @Test
-//    fun withdrawERC721(){
-//        val req = WithdrawERC721Request(
-//            nftId = 15L
-//        )
-//        accountService.withdrawERC721Process(address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867" , req)
-//            .block()
-//
-//        Thread.sleep(8000)
-//
-//    }
+   // @Test
+   // fun depositTest() {
+   //     val req = DepositRequest(
+   //         chainType = ChainType.POLYGON_MAINNET,
+   //         transactionHash = "0x21b77e341d43a1b58f5a40c648e4878e532ec1011efcec3fe82a7e23d35c5b2f",
+   //         accountLogId = null
+   //     )
+   //
+   //     accountService.depositProcess(
+   //         address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
+   //         request = req
+   //     ).block()
+   //
+   //     Thread.sleep(30000)
+   // }
+   //
+   //
+   // @Test
+   // fun withdrawERC20(){
+   //     val req = WithdrawERC20Request(
+   //         chainType = ChainType.POLYGON_AMOY,
+   //         amount = BigDecimal("1"),
+   //         accountLogId = null,
+   //     )
+   //
+   //     accountService.withdrawERC20Process(address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867" , req)
+   //         .block()
+   //
+   //     Thread.sleep(500000)
+   //
+   // }
+   //
+   //
+   // @Test
+   // fun withdrawERC721(){
+   //     val req = WithdrawERC721Request(
+   //         nftId = 10L,
+   //         accountLogId = null
+   //     )
+   //     accountService.withdrawERC721Process(address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867" , req)
+   //         .block()
+   //
+   //     Thread.sleep(800000)
+   //
+   // }
 
     @Test
     fun configTest(){

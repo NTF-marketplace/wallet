@@ -3,5 +3,5 @@ package com.api.wallet.controller.dto.request
 
 data class WithdrawERC721Request(
     val nftId: Long,
-    val accountId: Long
+    val accountLogId: Long?
 )
