@@ -199,21 +199,21 @@ class ValidatorTest(
         testRepository.save(test).block()
     }
 
-   // @Test
-   // fun depositTest() {
-   //     val req = DepositRequest(
-   //         chainType = ChainType.POLYGON_MAINNET,
-   //         transactionHash = "0x21b77e341d43a1b58f5a40c648e4878e532ec1011efcec3fe82a7e23d35c5b2f",
-   //         accountLogId = null
-   //     )
-   //
-   //     accountService.depositProcess(
-   //         address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
-   //         request = req
-   //     ).block()
-   //
-   //     Thread.sleep(30000)
-   // }
+   @Test
+   fun depositTest() {
+       val req = DepositRequest(
+           chainType = ChainType.POLYGON_MAINNET,
+           transactionHash = "0x21b77e341d43a1b58f5a40c648e4878e532ec1011efcec3fe82a7e23d35c5b2f",
+           accountLogId = null
+       )
+
+       accountService.depositProcess(
+           address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
+           request = req
+       ).block()
+
+       Thread.sleep(30000)
+   }
    //
    //
    // @Test
