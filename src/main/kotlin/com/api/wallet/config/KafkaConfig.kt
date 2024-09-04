@@ -30,16 +30,6 @@ class KafkaConfig {
     @Bean
     fun kafkaAdmin(): KafkaAdmin = KafkaAdmin(mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers))
 
-
-    @Bean
-    fun saleTopic(): NewTopic =
-        TopicBuilder
-            .name("sale-topic")
-            .partitions(4)
-            .replicas(3)
-            .build()
-
-
     @Bean
     fun consumerFactory(): ConsumerFactory<String, Any> {
         val props =
