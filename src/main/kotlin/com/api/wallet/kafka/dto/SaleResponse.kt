@@ -12,7 +12,7 @@ data class SaleResponse(
     val createdDateTime: Long,
     val endDateTime: Long,
     val statusType: StatusType,
-    val startingPrice: BigDecimal,
+    val price: BigDecimal,
     val chainType: ChainType,
     val orderType: OrderType
 )

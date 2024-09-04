@@ -202,8 +202,8 @@ class ValidatorTest(
    @Test
    fun depositTest() {
        val req = DepositRequest(
-           chainType = ChainType.POLYGON_MAINNET,
-           transactionHash = "0x21b77e341d43a1b58f5a40c648e4878e532ec1011efcec3fe82a7e23d35c5b2f",
+           chainType = ChainType.POLYGON_AMOY,
+           transactionHash = "0x72e6a2d5c3a8a46be1200910e05192d8e3b241cec4e1f9600b6503be0374e420",
            accountLogId = null
        )
 
@@ -212,7 +212,7 @@ class ValidatorTest(
            request = req
        ).block()
 
-       Thread.sleep(30000)
+       Thread.sleep(300000)
    }
    //
    //
@@ -290,4 +290,23 @@ class ValidatorTest(
         println(res.toString())
     }
 
+
+    @Test
+    fun jooqTest() {
+        val res = walletNftRepository.findByWalletIdJoinNft("0x01b72b4aa3f66f213d62d53e829bc172a6a72867",ChainType.POLYGON_MAINNET)
+            .next()
+            .block()
+
+        println(res.toString())
+    }
+
+    @Test
+    fun jooqTest2() {
+        val res = accountNftRepository.findByNftIdAndWalletAddressAndChainType(
+            nftId = 10L,
+            address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
+            nftChainType = ChainType.POLYGON_MAINNET
+        ).block()
+        println("res : " + res.toString())
+    }
 }

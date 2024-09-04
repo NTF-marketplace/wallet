@@ -16,9 +16,8 @@ import com.api.wallet.domain.account.nft.AccountNftRepository
 import com.api.wallet.domain.wallet.Wallet
 import com.api.wallet.domain.wallet.repository.WalletRepository
 import com.api.wallet.enums.*
+import com.api.wallet.kafka.dto.SaleResponse
 import com.api.wallet.rabbitMQ.dto.AdminTransferResponse
-import com.api.wallet.rabbitMQ.dto.AuctionResponse
-import com.api.wallet.rabbitMQ.dto.ListingResponse
 import com.api.wallet.service.external.admin.AdminApiService
 import com.api.wallet.storage.PriceStorage
 import com.api.wallet.util.Util.toPagedMono
@@ -250,7 +249,7 @@ class AccountService(
     }
 
 
-    fun updateListing(newListing: ListingResponse): Mono<Void> {
+    fun updateListing(newListing: SaleResponse): Mono<Void> {
         return redisService.getNft(newListing.nftId).flatMap {
             accountNftRepository.findByNftIdAndWalletAddressAndChainType(it.id, newListing.address, it.chainType)
                 .flatMap { accountNft ->
@@ -266,7 +265,7 @@ class AccountService(
         }
     }
 
-        fun updateAuction(newAuction: AuctionResponse): Mono<Void> {
+        fun updateAuction(newAuction: SaleResponse): Mono<Void> {
             return redisService.getNft(newAuction.nftId).flatMap {
                 accountNftRepository.findByNftIdAndWalletAddressAndChainType(it.id, newAuction.address, it.chainType)
                     .flatMap { accountNft ->

@@ -1,6 +1,7 @@
 package com.api.wallet.config
 
 import org.apache.kafka.clients.admin.AdminClientConfig
+import org.apache.kafka.clients.admin.NewTopic
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.LoggerFactory
@@ -9,6 +10,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.annotation.EnableKafka
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
+import org.springframework.kafka.config.TopicBuilder
 import org.springframework.kafka.core.ConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.KafkaAdmin
@@ -27,6 +29,16 @@ class KafkaConfig {
 
     @Bean
     fun kafkaAdmin(): KafkaAdmin = KafkaAdmin(mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers))
+
+
+    @Bean
+    fun saleTopic(): NewTopic =
+        TopicBuilder
+            .name("sale-topic")
+            .partitions(4)
+            .replicas(3)
+            .build()
+
 
     @Bean
     fun consumerFactory(): ConsumerFactory<String, Any> {

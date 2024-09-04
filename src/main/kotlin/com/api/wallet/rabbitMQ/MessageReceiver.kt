@@ -38,22 +38,22 @@ class MessageReceiver(
             channel.basicNack(deliveryTag, false, true)
         }
     }
-
-        @RabbitListener(bindings = [QueueBinding(
-        value = Queue(name = "", durable = "false", exclusive = "true", autoDelete = "true"),
-        exchange = Exchange(value = "listingExchange", type = ExchangeTypes.FANOUT)
-    )])
-    fun listingMessage(listing: ListingResponse){
-        accountService.updateListing(listing).subscribe()
-    }
-
-     @RabbitListener(bindings = [QueueBinding(
-         value = Queue(name = "", durable = "false", exclusive = "true", autoDelete = "true"),
-         exchange = Exchange(value = "auctionExchange", type = ExchangeTypes.FANOUT)
-     )])
-     fun auctionMessage(auction: AuctionResponse){
-         accountService.updateAuction(auction).subscribe()
-     }
+    //
+    //     @RabbitListener(bindings = [QueueBinding(
+    //     value = Queue(name = "", durable = "false", exclusive = "true", autoDelete = "true"),
+    //     exchange = Exchange(value = "listingExchange", type = ExchangeTypes.FANOUT)
+    // )])
+    // fun listingMessage(listing: ListingResponse){
+    //     accountService.updateListing(listing).subscribe()
+    // }
+    //
+    //  @RabbitListener(bindings = [QueueBinding(
+    //      value = Queue(name = "", durable = "false", exclusive = "true", autoDelete = "true"),
+    //      exchange = Exchange(value = "auctionExchange", type = ExchangeTypes.FANOUT)
+    //  )])
+    //  fun auctionMessage(auction: AuctionResponse){
+    //      accountService.updateAuction(auction).subscribe()
+    //  }
 
 
 }
