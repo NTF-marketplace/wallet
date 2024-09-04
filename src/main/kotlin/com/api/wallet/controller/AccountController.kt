@@ -83,7 +83,7 @@ class AccountController(
     fun depositAccount(
         @RequestHeader("X-Auth-Address") address: String,
         @RequestBody request: DepositRequest,
-    ): Mono<ResponseEntity<Void>> {
+    ): Mono<Void> {
         return accountService.depositProcess(address,request)
     }
 
@@ -92,7 +92,7 @@ class AccountController(
     fun withdrawERC20Account(
         @RequestHeader("X-Auth-Address") address: String,
         @RequestBody request: WithdrawERC20Request,
-    ): Mono<ResponseEntity<Void>> {
+    ): Mono<Void> {
         return accountService.withdrawERC20Process(address,request)
     }
     //TODO(check)
@@ -100,7 +100,7 @@ class AccountController(
     fun withdrawERC721Account(
         @RequestHeader("X-Auth-Address") address: String,
         @RequestBody request: WithdrawERC721Request,
-    ): Mono<ResponseEntity<Void>> {
+    ): Mono<Void> {
         return accountService.withdrawERC721Process(address,request)
     }
 

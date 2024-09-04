@@ -1,14 +1,15 @@
 package com.api.wallet.service.api
 
 import com.api.wallet.RedisService
+import com.api.wallet.controller.dto.response.AccountLogDetailResponse
 import com.api.wallet.controller.dto.response.AccountLogResponse
 import com.api.wallet.controller.dto.response.NftMetadataResponse
+import com.api.wallet.domain.account.detail.AccountDetailLog
+import com.api.wallet.domain.account.detail.AccountDetailLogRepository
 import com.api.wallet.domain.account.log.AccountLog
 import com.api.wallet.domain.account.log.AccountLogRepository
 import com.api.wallet.enums.AccountType
 import com.api.wallet.enums.TransferType
-import com.api.wallet.event.AccountEvent
-import com.api.wallet.event.AccountNftEvent
 import com.api.wallet.util.Util.toPage
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -22,6 +23,7 @@ class AccountLogService(
     private val accountLogRepository: AccountLogRepository,
     private val accountService: AccountService,
     private val redisService: RedisService,
+    private val accountDetailLogRepository: AccountDetailLogRepository
 ) {
     fun findAllByAccountLog(address: String, accountType: AccountType?, pageable: Pageable): Mono<Page<AccountLogResponse>> {
         return accountService.findAccountByAddress(address, null)
@@ -44,9 +46,9 @@ class AccountLogService(
 
     private fun getAccountLogs(accountIds: List<Long>, accountType: AccountType?, pageable: Pageable): Flux<AccountLog> {
         return if (accountType == null) {
-            accountLogRepository.findByAccountIdInOrderByTimestampDesc(accountIds, pageable)
+            accountLogRepository.findByAccountIdInOrderByCreatedAtDesc(accountIds, pageable)
         } else {
-            accountLogRepository.findByAccountIdInAndAccountTypeOrderByTimestampDesc(accountIds, accountType, pageable)
+            accountLogRepository.findByAccountIdInAndAccountTypeOrderByCreatedAtDesc(accountIds, accountType, pageable)
         }
     }
 
@@ -59,51 +61,52 @@ class AccountLogService(
     }
 
     private fun toAccountLogResponses(accountLogs: List<AccountLog>): Mono<List<AccountLogResponse>> {
-        val nftIds = accountLogs.filter { it.transferType == TransferType.ERC721 && it.nftId != null }
-            .mapNotNull { it.nftId }
+        val accountDetailLogIds = accountLogs.mapNotNull { it.accountDetailLogId }
 
-        return redisService.getNfts(nftIds)
+        return accountDetailLogRepository.findAllById(accountDetailLogIds)
             .collectList()
-            .map { nfts ->
-                val nftMap = nfts.associateBy { it.id }
-                accountLogs.map { accountLog ->
-                    val nftResponse = accountLog.nftId?.let { nftMap[it]?.let { it } }
-                    accountLog.toResponse(nftResponse)
-                }
+            .flatMap { accountDetailLogs ->
+                val accountDetailLogMap = accountDetailLogs.associateBy { it.id }
+                val nftIds = accountDetailLogs.mapNotNull { it.nftId }
+
+                redisService.getNfts(nftIds)
+                    .collectList()
+                    .flatMap { nfts ->
+                        val nftMap = nfts.associateBy { it.id }
+
+                        val accountLogResponses = accountLogs.map { accountLog ->
+                            val accountDetailLog = accountLog.accountDetailLogId?.let { accountDetailLogMap[it] }
+                            val nftResponse = accountDetailLog?.nftId?.let { nftMap[it] }
+
+                            accountLog.toResponse(nftResponse, accountDetailLog)
+                        }
+
+                        Mono.just(accountLogResponses)
+                    }
             }
     }
 
-    fun AccountLog.toResponse(nftResponse: NftMetadataResponse?): AccountLogResponse {
+    fun AccountLog.toResponse(nftResponse: NftMetadataResponse?, accountDetailLog: AccountDetailLog?): AccountLogResponse {
+        val detail = accountDetailLog?.let {
+            AccountLogDetailResponse(
+                nftResponse = if (it.transferType == TransferType.ERC721) nftResponse else null,
+                balance = it.balance ?: BigDecimal.ZERO,
+                transferType = it.transferType
+            )
+        }
+
         return AccountLogResponse(
-            nftResponse = if (this.transferType == TransferType.ERC20) null else nftResponse,
-            timestamp = this.timestamp,
+            timestamp = this.createdAt ?: 0L,
             accountType = this.accountType.name,
-            balance = if (this.transferType == TransferType.ERC721) BigDecimal.ZERO else this.balance ?: BigDecimal.ZERO
+            transactionStatusType = this.transactionStatusType,
+            detail = detail
         )
     }
-    fun saveAccountLog(event: AccountEvent,transferType: TransferType,balance: BigDecimal) : Mono<Void> {
-        val accountLog = AccountLog(
-            id = null,
-            accountId = event.account.id!!,
-            nftId = null,
-            accountType = event.accountType,
-            timestamp = event.timestamp,
-            balance = balance,
-            transferType = transferType
-        )
-        return accountLogRepository.save(accountLog).then()
+    fun save(accountId: Long, accountType: AccountType): Mono<AccountLog> {
+        return accountLogRepository.save(AccountLog(
+            accountId = accountId,
+            accountType = accountType,
+        ))
     }
 
-    fun saveAccountNft(event: AccountNftEvent, transferType: TransferType) : Mono<Void> {
-        val accountLog = AccountLog(
-            id = null,
-            accountId = event.accountNft.accountId,
-            nftId = event.accountNft.nftId,
-            accountType = event.accountType,
-            timestamp = event.timestamp,
-            balance = null,
-            transferType = transferType
-        )
-        return accountLogRepository.save(accountLog).then()
-    }
 }

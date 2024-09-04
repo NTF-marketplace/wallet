@@ -5,5 +5,5 @@ import reactor.core.publisher.Mono
 
 interface AccountNftRepositorySupport {
 
-    fun findByNftIdAndWalletAddressAndChainType(nftId: Long, address: String): Mono<AccountNft>
+    fun findByNftIdAndWalletAddressAndChainType(nftId: Long, address: String, nftChainType: ChainType): Mono<AccountNft>
 }
