@@ -8,13 +8,10 @@ import reactor.core.publisher.Mono
 
 
 interface AccountLogRepository : ReactiveCrudRepository<AccountLog,Long> {
-    fun findByAccountId(accountId:Long):Mono<AccountLog>
-
-    fun findByAccountIdInAndAccountTypeOrderByCreatedAtDesc(ids:List<Long>,accountType: AccountType,pageable: Pageable): Flux<AccountLog>
-
     fun countByAccountIdInAndAccountType(ids:List<Long>, accountType: AccountType) : Mono<Long>
 
-    fun findByAccountIdInOrderByCreatedAtDesc(ids:List<Long>,pageable: Pageable) : Flux<AccountLog>
+    fun findByAccountIdIn(accountIds: List<Long>, pageable: Pageable): Flux<AccountLog>
+    fun findByAccountIdInAndAccountType(accountIds: List<Long>, accountType: AccountType, pageable: Pageable): Flux<AccountLog>
     fun countByAccountIdIn(ids:List<Long>): Mono<Long>
 
 }

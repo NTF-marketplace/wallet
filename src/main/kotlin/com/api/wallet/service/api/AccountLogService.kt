@@ -46,12 +46,11 @@ class AccountLogService(
 
     private fun getAccountLogs(accountIds: List<Long>, accountType: AccountType?, pageable: Pageable): Flux<AccountLog> {
         return if (accountType == null) {
-            accountLogRepository.findByAccountIdInOrderByCreatedAtDesc(accountIds, pageable)
+            accountLogRepository.findByAccountIdIn(accountIds, pageable)
         } else {
-            accountLogRepository.findByAccountIdInAndAccountTypeOrderByCreatedAtDesc(accountIds, accountType, pageable)
+            accountLogRepository.findByAccountIdInAndAccountType(accountIds, accountType, pageable)
         }
     }
-
     private fun getCount(accountIds: List<Long>, accountType: AccountType?): Mono<Long> {
         return if (accountType == null) {
             accountLogRepository.countByAccountIdIn(accountIds)

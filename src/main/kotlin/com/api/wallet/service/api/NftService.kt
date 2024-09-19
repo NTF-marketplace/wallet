@@ -12,6 +12,7 @@ import com.api.wallet.util.Util.toPagedMono
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
@@ -32,6 +33,7 @@ class NftService(
         return redisService.getNft(nftId)
     }
 
+    @Transactional
     fun readAllNftByWallet(address: String, chainType: ChainType?, pageable: Pageable): Mono<Page<NftMetadataResponse>> {
         return walletService.findWallet(address, chainType)
             .flatMap { wallet ->
