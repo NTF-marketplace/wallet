@@ -2,21 +2,17 @@ package com.api.wallet.service.api
 
 import com.api.wallet.RedisService
 import com.api.wallet.controller.dto.response.NftMetadataResponse
-import com.api.wallet.domain.nft.Nft
-import com.api.wallet.domain.nft.repository.NftRepository
 import com.api.wallet.domain.wallet.Wallet
 import com.api.wallet.domain.walletNft.WalletNft
 import com.api.wallet.domain.walletNft.repository.WalletNftRepository
 import com.api.wallet.enums.ChainType
 import com.api.wallet.service.external.nft.NftApiService
-import com.api.wallet.service.external.nft.dto.NftRequest
 import com.api.wallet.service.external.nft.dto.NftResponse
-import com.api.wallet.service.external.nft.dto.NftResponse.Companion.toEntity
 import com.api.wallet.util.Util.toPagedMono
-import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
@@ -24,7 +20,6 @@ import java.util.concurrent.Executors
 
 @Service
 class NftService(
-    private val nftRepository: NftRepository,
     private val walletNftRepository: WalletNftRepository,
     private val nftApiService: NftApiService,
     private val walletService: WalletService,
@@ -34,41 +29,11 @@ class NftService(
     private val virtualThreadScheduler = Schedulers.fromExecutor(Executors.newVirtualThreadPerTaskExecutor())
 
 
-    fun save(response: NftResponse): Mono<Void> {
-        return nftRepository.findById(response.id)
-            .hasElement()
-            .flatMap { exists ->
-                if (!exists) {
-                    nftRepository.insert(response.toEntity())
-                        .onErrorResume(DuplicateKeyException::class.java) {
-                            Mono.empty()
-                        }
-                        .then()
-                } else {
-                    Mono.empty()
-                }
-            }
+    fun findOrCreateNft(nftId: Long): Mono<NftMetadataResponse> {
+        return redisService.getNft(nftId)
     }
 
-
-    fun findOrCreateNft(nftId: Long, tokenAddress: String, tokenId: String, chainType: ChainType): Mono<Nft> {
-        return nftRepository.findById(nftId)
-            .switchIfEmpty(
-                nftApiService.getNftSave(
-                    NftRequest(
-                        tokenAddress,
-                        tokenId,
-                        chainType
-                    )
-                ).flatMap {
-                    nftRepository.insert(it.toEntity())
-                        .onErrorResume(DuplicateKeyException::class.java) {
-                            Mono.empty()
-                        }
-                }
-            )
-    }
-
+    @Transactional
     fun readAllNftByWallet(address: String, chainType: ChainType?, pageable: Pageable): Mono<Page<NftMetadataResponse>> {
         return walletService.findWallet(address, chainType)
             .flatMap { wallet ->
@@ -113,7 +78,7 @@ class NftService(
 
         return Flux.fromIterable(nftsToAdd)
             .flatMap { nftResponse ->
-                findOrCreateNft(nftResponse.id, nftResponse.tokenAddress, nftResponse.tokenId, nftResponse.chainType)
+                findOrCreateNft(nftResponse.id)
                     .flatMap {
                         walletNftRepository.save(
                             WalletNft(
@@ -130,7 +95,6 @@ class NftService(
         oldIds: List<Long>,
         wallet: Wallet
     ): Flux<Void> {
-
         val idsToDelete = oldIds.filter { it !in newIds }
 
         return Flux.fromIterable(idsToDelete)

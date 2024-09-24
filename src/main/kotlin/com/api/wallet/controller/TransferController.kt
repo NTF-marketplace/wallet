@@ -1,7 +1,7 @@
 package com.api.wallet.controller
 
 import com.api.wallet.controller.dto.request.TransferRequest
-import com.api.wallet.service.TransferService
+import com.api.wallet.service.api.TransferService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody

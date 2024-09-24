@@ -1,10 +1,18 @@
 package com.api.wallet.controller.dto.response
 
+import com.api.wallet.enums.TransaionStatusType
+import com.api.wallet.enums.TransferType
 import java.math.BigDecimal
 
 data class AccountLogResponse(
-    val nftResponse: NftMetadataResponse?,
     val timestamp: Long,
     val accountType: String,
-    val balance: BigDecimal
+    val transactionStatusType: TransaionStatusType,
+    val detail: AccountLogDetailResponse?
+)
+
+data class AccountLogDetailResponse(
+    val nftResponse: NftMetadataResponse?,
+    val balance: BigDecimal,
+    val transferType: TransferType
 )

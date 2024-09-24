@@ -8,18 +8,18 @@ import com.api.wallet.controller.dto.request.WithdrawERC20Request
 import com.api.wallet.controller.dto.request.WithdrawERC721Request
 import com.api.wallet.domain.TestRepository
 import com.api.wallet.domain.account.log.AccountLogRepository
+import com.api.wallet.domain.account.nft.AccountNftRepository
 import com.api.wallet.domain.wallet.repository.WalletRepository
-import com.api.wallet.enums.AccountType
+import com.api.wallet.domain.walletNft.repository.WalletNftRepository
 import com.api.wallet.enums.ChainType
 import com.api.wallet.enums.MyEnum
-import com.api.wallet.enums.TransferType
-import com.api.wallet.rabbitMQ.dto.AdminTransferResponse
-import com.api.wallet.service.TransferService
 import com.api.wallet.service.api.AccountService
 import com.api.wallet.service.api.NftService
+import com.api.wallet.service.api.TransferService
 import com.api.wallet.service.api.WalletService
 import com.api.wallet.service.external.admin.AdminApiService
 import com.api.wallet.service.external.infura.InfuraApiService
+import com.api.wallet.service.external.nft.NftApiService
 import com.api.wallet.validator.SignatureValidator
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -49,7 +49,14 @@ class ValidatorTest(
     @Autowired private val redisService: RedisService,
     @Autowired private val adminApiService: AdminApiService,
     @Autowired private val transferService: TransferService,
+    @Autowired private val nftApiService: NftApiService,
 ) {
+
+    @Autowired
+    private lateinit var accountNftRepository: AccountNftRepository
+
+    @Autowired
+    private lateinit var walletNftRepository: WalletNftRepository
 
     @Test
     fun SignatureValidatorRequestTest() {
@@ -106,7 +113,7 @@ class ValidatorTest(
         val response  = walletService.signInOrSignUp(request).block()
 
         println(response?.wallet?.balance)
-        println(response?.tokens?.accessToken)
+        println("accessToken : " + response?.tokens?.accessToken)
         println(response?.tokens?.refreshToken)
     }
 
@@ -129,7 +136,7 @@ class ValidatorTest(
     fun readAllNfts() {
         val address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867"
 //        val nftList= nftService.readAllNftByWallet(address,null).blockLast()
-        val page = PageRequest.of(0,10)
+        val page = PageRequest.of(0,20)
         val response = walletController.getAllNft(null,address,page).block()
 
         response?.content?.map {
@@ -192,48 +199,51 @@ class ValidatorTest(
         testRepository.save(test).block()
     }
 
-    @Test
-    fun depositTest() {
-        val req = DepositRequest(
-            chainType = ChainType.POLYGON_MAINNET,
-            transactionHash = "0x21b77e341d43a1b58f5a40c648e4878e532ec1011efcec3fe82a7e23d35c5b2f"
-        )
+   @Test
+   fun depositTest() {
+       val req = DepositRequest(
+           chainType = ChainType.POLYGON_AMOY,
+           transactionHash = "0x72e6a2d5c3a8a46be1200910e05192d8e3b241cec4e1f9600b6503be0374e420",
+           accountLogId = null
+       )
 
-        accountService.depositProcess(
-            address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
-            request = req
-        ).block()
+       accountService.depositProcess(
+           address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
+           request = req
+       ).block()
 
-        Thread.sleep(8000)
-    }
-
-
-    @Test
-    fun withdrawERC20(){
-        val req = WithdrawERC20Request(
-            chainType = ChainType.POLYGON_AMOY,
-            amount = BigDecimal("1")
-        )
-
-        accountService.withdrawERC20Process(address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867" , req)
-            .block()
-
-        Thread.sleep(5000)
-
-    }
-
-
-    @Test
-    fun withdrawERC721(){
-        val req = WithdrawERC721Request(
-            nftId = 15L
-        )
-        accountService.withdrawERC721Process(address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867" , req)
-            .block()
-
-        Thread.sleep(8000)
-
-    }
+       Thread.sleep(300000)
+   }
+   //
+   //
+   // @Test
+   // fun withdrawERC20(){
+   //     val req = WithdrawERC20Request(
+   //         chainType = ChainType.POLYGON_AMOY,
+   //         amount = BigDecimal("1"),
+   //         accountLogId = null,
+   //     )
+   //
+   //     accountService.withdrawERC20Process(address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867" , req)
+   //         .block()
+   //
+   //     Thread.sleep(500000)
+   //
+   // }
+   //
+   //
+   // @Test
+   // fun withdrawERC721(){
+   //     val req = WithdrawERC721Request(
+   //         nftId = 10L,
+   //         accountLogId = null
+   //     )
+   //     accountService.withdrawERC721Process(address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867" , req)
+   //         .block()
+   //
+   //     Thread.sleep(800000)
+   //
+   // }
 
     @Test
     fun configTest(){
@@ -262,4 +272,41 @@ class ValidatorTest(
     // }
 
 
+    @Test
+    fun circuitbreakerTest() {
+        nftApiService.getByWalletNft("0x01b72b4aa3f66f213d62d53e829bc172a6a72867",ChainType.POLYGON_MAINNET).blockLast()
+
+    }
+
+    @Test
+    fun walletNftTest() {
+        val res =walletNftRepository.deleteByNftIdAndWalletId(nftId = 10L,3).block()
+        println(res.toString())
+    }
+
+    @Test
+    fun accountNft() {
+        val res = accountNftRepository.findByNftIdAndWalletAddressAndChainType(3L,"0x01b72b4aa3f66f213d62d53e829bc172a6a72867",ChainType.POLYGON_MAINNET).block()
+        println(res.toString())
+    }
+
+
+    @Test
+    fun jooqTest() {
+        val res = walletNftRepository.findByWalletIdJoinNft("0x01b72b4aa3f66f213d62d53e829bc172a6a72867",ChainType.POLYGON_MAINNET)
+            .next()
+            .block()
+
+        println(res.toString())
+    }
+
+    @Test
+    fun jooqTest2() {
+        val res = accountNftRepository.findByNftIdAndWalletAddressAndChainType(
+            nftId = 10L,
+            address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
+            nftChainType = ChainType.POLYGON_MAINNET
+        ).block()
+        println("res : " + res.toString())
+    }
 }

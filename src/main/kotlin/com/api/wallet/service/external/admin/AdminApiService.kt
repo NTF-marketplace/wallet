@@ -28,8 +28,14 @@ class AdminApiService(
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(request)
             .retrieve()
+            .onStatus({ status -> status.is4xxClientError || status.is5xxServerError }) { response ->
+                response.bodyToMono(String::class.java).flatMap { body ->
+                    Mono.error(RuntimeException("Failed to create deposit: ${response.statusCode()} - $body"))
+                }
+            }
             .toBodilessEntity()
     }
+
 
     fun withdrawERC20(address: String, request:WithdrawERC20Request): Mono<ResponseEntity<Void>> {
         return webClient.post()

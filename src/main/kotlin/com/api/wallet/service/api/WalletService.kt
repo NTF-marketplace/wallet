@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toFlux
 import java.math.BigDecimal
@@ -31,17 +32,16 @@ class WalletService(
     @Lazy private val accountService: AccountService,
 ) {
     private final val logger = LoggerFactory.getLogger(this.javaClass)
-
-
-    fun getWalletAccount(address:String,chainType: ChainType): Mono<WalletAccountResponse>  {
-        return findOrCreateUserAndWallet(address,chainType).flatMap {wallet ->
-            val account = accountService.findByAccountByWallet(wallet)
-            Mono.zip(Mono.just(wallet.balance), account) { balance, accounts ->
-                WalletAccountResponse(balance,accounts)
+    fun getWalletAccount(address: String, chainType: ChainType): Mono<WalletAccountResponse> {
+        return findWallet(address, chainType)
+            .next()
+            .flatMap { wallet ->
+                val account = accountService.findByAccountByWallet(wallet)
+                Mono.zip(Mono.just(wallet.balance), account) { balance, accounts ->
+                    WalletAccountResponse(balance, accounts)
+                }
             }
-        }
     }
-
 
     @Transactional
     fun signInOrSignUp(request: ValidateRequest): Mono<SignInResponse> {
@@ -71,29 +71,29 @@ class WalletService(
     }
 
 
-
-    private fun findOrCreateUserAndWallet(address: String, chain: ChainType): Mono<Wallet> {
-        return walletRepository.findByAddressAndChainType(address, chain)
-            .switchIfEmpty {
-                userRepository.save(Users(nickName = "Unknown"))
-                    .flatMap { user ->
-                        walletRepository.save(
-                            Wallet(
-                                address = address,
-                                userId = user.id!!,
-                                chainType = chain,
-                                balance = BigDecimal.ZERO,
-                                createdAt = System.currentTimeMillis(),
-                                updatedAt = System.currentTimeMillis()
+     fun findOrCreateUserAndWallet(address: String, chain: ChainType): Mono<Wallet> {
+        return Mono.defer {
+            walletRepository.findByAddressAndChainType(address, chain)
+                .switchIfEmpty {
+                    userRepository.save(Users(nickName = "Unknown"))
+                        .flatMap { user ->
+                            walletRepository.save(
+                                Wallet(
+                                    address = address,
+                                    userId = user.id!!,
+                                    chainType = chain,
+                                    balance = BigDecimal.ZERO,
+                                    createdAt = System.currentTimeMillis(),
+                                    updatedAt = System.currentTimeMillis()
+                                )
                             )
-                        )
-                    }
-            }
-            .flatMap { wallet ->
-                updateWalletBalance(wallet, wallet.chainType)
-            }
+                        }
+                }
+                .flatMap { wallet ->
+                    updateWalletBalance(wallet, wallet.chainType)
+                }
+        }
     }
-
 
     private fun authenticateWallet(request: ValidateRequest): Boolean {
         return signatureValidator.verifySignature(request)

@@ -1,10 +1,6 @@
 package com.api.wallet.config
 
-import com.api.wallet.enums.AccountType
-import com.api.wallet.enums.ChainType
-import com.api.wallet.enums.MyEnum
-import com.api.wallet.enums.StatusType
-import com.api.wallet.enums.TransferType
+import com.api.wallet.enums.*
 import com.api.wallet.util.enumConvert.*
 import io.r2dbc.pool.ConnectionPool
 import io.r2dbc.pool.ConnectionPoolConfiguration
@@ -43,13 +39,14 @@ class R2dbcConfig : AbstractR2dbcConfiguration(){
                     .withEnum("account_type", AccountType::class.java)
                     .withEnum("transfer_type", TransferType::class.java)
                     .withEnum("status_type", StatusType::class.java)
+                    .withEnum("transaction_status_type", TransaionStatusType::class.java)
                     .build()
             )
             .build()
 
         val poolConfig = ConnectionPoolConfiguration.builder()
             .connectionFactory(PostgresqlConnectionFactory(config))
-            .maxSize(2)
+            .maxSize(10)
             .build()
 
         return ConnectionPool(poolConfig)
@@ -67,6 +64,8 @@ class R2dbcConfig : AbstractR2dbcConfiguration(){
         converters.add((StringToEnumConverter(TransferType::class.java)))
         converters.add(StatusTypeConvert(StatusType::class.java))
         converters.add((StringToEnumConverter(StatusType::class.java)))
+        converters.add(TransactionStatusTypeConvert(TransaionStatusType::class.java))
+        converters.add((StringToEnumConverter(TransaionStatusType::class.java)))
         return R2dbcCustomConversions(storeConversions, converters)
     }
 

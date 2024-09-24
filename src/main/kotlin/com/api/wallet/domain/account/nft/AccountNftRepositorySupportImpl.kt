@@ -1,32 +1,40 @@
 package com.api.wallet.domain.account.nft
 
+import com.api.jooq.Tables.ACCOUNT
+import com.api.jooq.Tables.ACCOUNT_NFT
+import com.api.jooq.Tables.WALLET
 import com.api.wallet.enums.ChainType
 import com.api.wallet.enums.StatusType
+import org.jooq.DSLContext
+import org.jooq.conf.ParamType
+import org.jooq.impl.DSL
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import reactor.core.publisher.Mono
 
 class AccountNftRepositorySupportImpl(
-    private val r2dbcEntityTemplate: R2dbcEntityTemplate
+    private val r2dbcEntityTemplate: R2dbcEntityTemplate,
+    private val dslContext: DSLContext
 ): AccountNftRepositorySupport {
     override fun findByNftIdAndWalletAddressAndChainType(
         nftId: Long,
-        address: String
+        address: String,
+        nftChainType: ChainType,
     ): Mono<AccountNft> {
-        val query = """
-            SELECT an.*
-            FROM account_nft an
-            JOIN nft n ON an.nft_id = n.id
-            JOIN account a ON an.account_id = a.id
-            JOIN wallet w ON a.wallet_id = w.id
-            WHERE n.id = $1 AND w.address = $2 AND n.chain_type = (
-                SELECT chain_type FROM nft WHERE id = $1
-            )
-        """
+        val query = dslContext
+            .select(ACCOUNT_NFT.ID, ACCOUNT_NFT.ACCOUNT_ID, ACCOUNT_NFT.NFT_ID, ACCOUNT_NFT.STATUS)
+            .from(ACCOUNT_NFT)
+            .join(ACCOUNT).on(ACCOUNT_NFT.ACCOUNT_ID.eq(ACCOUNT.ID.cast(Long::class.java)))
+            .join(WALLET).on(ACCOUNT.WALLET_ID.eq(WALLET.ID.cast(Long::class.java)))
+            .where(WALLET.ADDRESS.eq(DSL.param("address", String::class.java)))
+                .and(WALLET.CHAIN_TYPE.eq(DSL.param("chainType", com.api.jooq.enums.ChainType::class.java)))
+                .and(ACCOUNT_NFT.NFT_ID.eq(DSL.param("nftId", Long::class.java)))
 
-        return r2dbcEntityTemplate.databaseClient
-            .sql(query)
-            .bind(0, nftId)
-            .bind(1, address)
+        val sql = query.getSQL(ParamType.NAMED)
+
+        return r2dbcEntityTemplate.databaseClient.sql(sql)
+            .bind("address", address)
+            .bind("chainType", nftChainType)
+            .bind("nftId", nftId)
             .map { row, _ ->
                 AccountNft(
                     id = (row.get("id") as Number).toLong(),

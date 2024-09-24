@@ -19,6 +19,8 @@ class WalletController(
     private val walletService: WalletService,
 ) {
     //  api 게이트웨이에서 헤더전파
+
+    //TODO(ALL)
     @GetMapping("/nft")
     fun getAllNft(
         @RequestParam(required = false) chainType: ChainType?,
@@ -29,6 +31,7 @@ class WalletController(
 
     }
 
+    //TODO(check)
     @GetMapping("/{chainType}")
     fun getBalance(@PathVariable chainType: ChainType,@RequestParam address: String)
     : Mono<WalletAccountResponse> {
