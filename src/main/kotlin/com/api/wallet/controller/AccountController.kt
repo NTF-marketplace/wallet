@@ -13,7 +13,6 @@ import com.api.wallet.service.api.AccountService
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -58,7 +57,6 @@ class AccountController(
         return accountService.checkAccountBalance(address, chainType, requiredBalance)
     }
 
-    //TODO(check)
     @GetMapping("/auth")
     fun getAccount(
         @RequestHeader("X-Auth-Address") address: String,
@@ -68,7 +66,6 @@ class AccountController(
         return accountService.findByAccountsByAddress(address,chainType)
     }
 
-    //TODO(check)
     @GetMapping("/auth/logs")
     fun getAccountLogs(
         @RequestHeader("X-Auth-Address") address: String,
@@ -78,7 +75,6 @@ class AccountController(
         return accountLogService.findAllByAccountLog(address,accountType,pageable)
     }
 
-    //TODO(check)
     @PostMapping("/auth/deposit")
     fun depositAccount(
         @RequestHeader("X-Auth-Address") address: String,
@@ -87,7 +83,6 @@ class AccountController(
         return accountService.depositProcess(address,request)
     }
 
-    //TODO(check)
     @PostMapping("/auth/withdraw/ERC20")
     fun withdrawERC20Account(
         @RequestHeader("X-Auth-Address") address: String,
@@ -95,7 +90,6 @@ class AccountController(
     ): Mono<Void> {
         return accountService.withdrawERC20Process(address,request)
     }
-    //TODO(check)
     @PostMapping("/auth/withdraw/ERC721")
     fun withdrawERC721Account(
         @RequestHeader("X-Auth-Address") address: String,
