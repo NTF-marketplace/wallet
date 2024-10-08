@@ -101,7 +101,8 @@ class WalletService(
 
     private fun updateWalletBalance(wallet: Wallet,chainType: ChainType): Mono<Wallet> {
         return infuraApiService.getBalance(wallet.address, chainType)
-            .map { wallet.updateBalance(it) }
+            .map {
+                wallet.updateBalance(it) }
             .flatMap { walletRepository.save(it)  }
     }
 }

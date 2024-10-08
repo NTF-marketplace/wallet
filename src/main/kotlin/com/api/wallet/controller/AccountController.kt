@@ -31,9 +31,9 @@ class AccountController(
     private val accountLogService: AccountLogService,
 ) {
 
-    @GetMapping("/nft")
+    @GetMapping("auth/nft")
     fun getAccountNft(
-        @RequestParam address: String,
+        @RequestHeader("X-Auth-Address") address: String,
         @RequestParam(required = false) chainType: ChainType?,
         @PageableDefault(size = 50) pageable: Pageable,
     ): Mono<Page<NftMetadataResponse>> {
@@ -62,7 +62,6 @@ class AccountController(
         @RequestHeader("X-Auth-Address") address: String,
         @RequestParam(required = false) chainType: ChainType?,
     ): Flux<AccountResponse> {
-        println("들어오나요?")
         return accountService.findByAccountsByAddress(address,chainType)
     }
 

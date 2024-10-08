@@ -15,7 +15,7 @@ class AuthController(
     private val walletService: WalletService,
 ) {
 
-    @PostMapping("/signIn")
+    @PostMapping("/signin")
     fun signInOrSignUp(@RequestBody request: ValidateRequest): Mono<SignInResponse> {
         return walletService.signInOrSignUp(request)
     }
