@@ -23,8 +23,8 @@ class AccountNftRepositorySupportImpl(
         val query = dslContext
             .select(ACCOUNT_NFT.ID, ACCOUNT_NFT.ACCOUNT_ID, ACCOUNT_NFT.NFT_ID, ACCOUNT_NFT.STATUS)
             .from(ACCOUNT_NFT)
-            .join(ACCOUNT).on(ACCOUNT_NFT.ACCOUNT_ID.eq(ACCOUNT.ID.cast(Long::class.java)))
-            .join(WALLET).on(ACCOUNT.WALLET_ID.eq(WALLET.ID.cast(Long::class.java)))
+            .leftJoin(ACCOUNT).on(ACCOUNT_NFT.ACCOUNT_ID.eq(ACCOUNT.ID.cast(Long::class.java)))
+            .leftJoin(WALLET).on(ACCOUNT.WALLET_ID.eq(WALLET.ID.cast(Long::class.java)))
             .where(WALLET.ADDRESS.eq(DSL.param("address", String::class.java)))
                 .and(WALLET.CHAIN_TYPE.eq(DSL.param("chainType", com.api.jooq.enums.ChainType::class.java)))
                 .and(ACCOUNT_NFT.NFT_ID.eq(DSL.param("nftId", Long::class.java)))

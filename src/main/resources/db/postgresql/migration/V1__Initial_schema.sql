@@ -19,7 +19,7 @@ CREATE TYPE transfer_type AS ENUM(
     );
 
 CREATE TYPE status_type AS ENUM(
-    'RESERVATION', 'ACTIVED', 'NONE','LISTING','AUCTION'
+    'RESERVATION', 'ACTIVED', 'NONE','LISTING'
     );
 
 CREATE TYPE transaction_status_type AS ENUM(
@@ -83,3 +83,4 @@ CREATE TABLE IF NOT EXISTS account_log(
     created_at BIGINT not null
 );
 
+ALTER TYPE status_type ADD VALUE 'AUCTION';

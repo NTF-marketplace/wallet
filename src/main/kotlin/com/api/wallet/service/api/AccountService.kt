@@ -51,6 +51,7 @@ class AccountService(
 
     fun checkAccountNftId(address: String, nftId: Long): Mono<Boolean> {
         return redisService.getNft(nftId).flatMap {
+            println("redis : " + it.toString())
             accountNftRepository.findByNftIdAndWalletAddressAndChainType(it.id, address,it.chainType)
                 .hasElement()
         }
