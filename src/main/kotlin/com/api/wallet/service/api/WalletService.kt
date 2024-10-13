@@ -8,6 +8,7 @@ import com.api.wallet.domain.user.repository.UserRepository
 import com.api.wallet.domain.wallet.Wallet
 import com.api.wallet.domain.wallet.repository.WalletRepository
 import com.api.wallet.enums.ChainType
+import com.api.wallet.exception.ClientErrorException
 import com.api.wallet.service.external.auth.AuthApiService
 import com.api.wallet.service.external.infura.InfuraApiService
 import com.api.wallet.validator.SignatureValidator
@@ -51,7 +52,7 @@ class WalletService(
                     getTokens(wallet)
                 }
         } else {
-            Mono.error(IllegalArgumentException("not valid Wallet Address"))
+            Mono.error(ClientErrorException("not valid Wallet Address"))
         }
     }
 
@@ -67,7 +68,7 @@ class WalletService(
             walletRepository.findByAddressAndChainType(address, chain)
         } else {
             walletRepository.findAllByAddress(address)
-        }).toFlux().switchIfEmpty(Flux.error(IllegalArgumentException("Wallet not found")))
+        }).toFlux().switchIfEmpty(Flux.error(ClientErrorException("Wallet not found")))
     }
 
 
