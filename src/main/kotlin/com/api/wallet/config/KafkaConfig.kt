@@ -50,6 +50,7 @@ class KafkaConfig {
         val factory = ConcurrentKafkaListenerContainerFactory<String, Any>()
         factory.consumerFactory = consumerFactory()
         factory.setConcurrency(4)
+        factory.containerProperties.ackMode = ContainerProperties.AckMode.RECORD
         factory.setCommonErrorHandler(
             object : CommonErrorHandler {
                 override fun handleRemaining(
