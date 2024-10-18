@@ -19,7 +19,7 @@
 
 ## Client API 명세 ( API-Gateway: 8443)
 
-- 회원 가입 →  POST:  **/v1/signin**
+- 회원 가입 또는 로그인 →  POST:  **/v1/signin**
     
     **Request :  클라이언트(프론트)에서 서명 된 message와** signature를 받아 검증 
     
