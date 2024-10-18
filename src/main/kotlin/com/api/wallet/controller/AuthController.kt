@@ -14,8 +14,8 @@ import reactor.core.publisher.Mono
 class AuthController(
     private val walletService: WalletService,
 ) {
-    //TODO(ALL)
-    @PostMapping("/signIn")
+
+    @PostMapping("/signin")
     fun signInOrSignUp(@RequestBody request: ValidateRequest): Mono<SignInResponse> {
         return walletService.signInOrSignUp(request)
     }

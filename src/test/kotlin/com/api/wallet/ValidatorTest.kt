@@ -83,7 +83,7 @@ class ValidatorTest(
             chain = ChainType.POLYGON_MAINNET
         )
         val isValid = signatureValidator.verifySignature(request)
-        println(isValid)
+        println("valid : " + isValid)
     }
 
     @Test
@@ -92,7 +92,6 @@ class ValidatorTest(
         val res = infuraApiService.getBlockNumber(ChainType.POLYGON_MAINNET)
         println(res.block())
     }
-
 
     @Test
     fun getBalance() {
@@ -108,13 +107,13 @@ class ValidatorTest(
             address = "0x01b72b4aa3f66f213d62d53e829bc172a6a72867",
             message = "Hello, MetaMask!",
             signature = "0x5714c3d6a6773a614091a9ac81dc8f4f6a0219349ddb4010edb6595c47b158814a9265e2c17aa7f7cfe479636a96c9f93cd665b213cc76b005c4b742edb6b27c1c",
-            chain = ChainType.POLYGON_MAINNET
+            chain = ChainType.POLYGON_AMOY
         )
         val response  = walletService.signInOrSignUp(request).block()
 
         println(response?.wallet?.balance)
         println("accessToken : " + response?.tokens?.accessToken)
-        println(response?.tokens?.refreshToken)
+        // println(response?.tokens?.refreshToken)
     }
 
     @Test

@@ -31,6 +31,7 @@ class MessageReceiver(
         @Header(AmqpHeaders.DELIVERY_TAG) deliveryTag: Long
     ) {
         try {
+            println("transfer : " + transfer)
             accountService.processTransfer(transfer).subscribe()
             channel.basicAck(deliveryTag, false)
         } catch (e: Exception) {

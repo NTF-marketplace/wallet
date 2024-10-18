@@ -40,7 +40,7 @@ class RedisConfig {
         )
         val clientConfig = LettuceClientConfiguration.builder()
             .commandTimeout(Duration.ofSeconds(10))
-            .readFrom(ReadFrom.REPLICA_PREFERRED)
+            // .readFrom(ReadFrom.REPLICA_PREFERRED)
             .build()
 
         redisClusterConfiguration.password = RedisPassword.of("bitnami")

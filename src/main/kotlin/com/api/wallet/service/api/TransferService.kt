@@ -69,7 +69,7 @@ class TransferService(
 
     fun transferNft(fromAccount: Account, toAccount: Account, nftId: Long): Mono<Void> {
         return performTransfer(
-            fromAccount, toAccount,
+            toAccount,fromAccount,
             { accountService.processERC721Transfer(it, AccountType.WITHDRAW, nftId) },
             { accountService.processERC721Transfer(it, AccountType.DEPOSIT, nftId) }
         )
@@ -91,7 +91,8 @@ class TransferService(
                         ).flatMap { tuple ->
                             val fromAccountDetailLog = tuple.t1
                             val toAccountDetailLog = tuple.t2
-
+                            println("from : " + fromAccountDetailLog.toString())
+                            println("to : " + toAccountDetailLog.toString())
                             updateAccountLogs(
                                 fromAccountLogId = fromAccountLog.id!!,
                                 fromAccountDetailLog = fromAccountDetailLog,

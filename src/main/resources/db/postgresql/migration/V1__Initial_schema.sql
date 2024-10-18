@@ -18,13 +18,8 @@ CREATE TYPE transfer_type AS ENUM(
     'ERC721'
     );
 
-CREATE TYPE my_enum AS ENUM(
-    'ORANGE', 'APPLE'
-    );
-
-
 CREATE TYPE status_type AS ENUM(
-    'RESERVATION', 'ACTIVED', 'NONE','LISTING','AUCTION'
+    'RESERVATION', 'ACTIVED', 'NONE','LISTING'
     );
 
 CREATE TYPE transaction_status_type AS ENUM(
@@ -32,21 +27,11 @@ CREATE TYPE transaction_status_type AS ENUM(
     );
 
 
-CREATE TABLE IF NOT EXISTS test (
-    id SERIAL PRIMARY KEY,
-    type my_enum not null
-);
-
-
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     nick_name VARCHAR(255) NOT NULL
     );
 
--- CREATE TABLE IF NOT EXISTS chain (
--- --     id SERIAL PRIMARY KEY,
---     type chain_type PRIMARY KEY
--- );
 
 CREATE TABLE IF NOT EXISTS wallet (
     id SERIAL PRIMARY KEY,
@@ -82,16 +67,6 @@ CREATE TABLE IF NOT EXISTS account_nft (
     status status_type not null
 );
 
--- CREATE TABLE IF NOT EXISTS account_log (
---     id SERIAL PRIMARY KEY,
---     account_id BIGINT REFERENCES account(id),
---     nft_id BIGINT not null,
---     timestamp BIGINT not null,
---     account_type account_type not null,
---     transfer_type transfer_type not null,
---     balance DECIMAL(19, 4)
--- );
-
 CREATE TABLE IF NOT EXISTS account_detail_log (
     id SERIAL PRIMARY KEY,
     nft_id BIGINT,
@@ -108,3 +83,4 @@ CREATE TABLE IF NOT EXISTS account_log(
     created_at BIGINT not null
 );
 
+ALTER TYPE status_type ADD VALUE 'AUCTION';

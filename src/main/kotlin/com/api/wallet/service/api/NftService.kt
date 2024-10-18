@@ -51,10 +51,7 @@ class NftService(
 
     private fun getNftByWallet(wallet: Wallet): Flux<NftResponse> {
         val responseFlux = nftApiService.getByWalletNft(wallet.address, wallet.chainType)
-            .subscribeOn(virtualThreadScheduler)
-
         val walletNftsFlux = walletNftRepository.findByWalletIdJoinNft(wallet.address, wallet.chainType)
-            .subscribeOn(virtualThreadScheduler)
 
         return Flux.zip(responseFlux.collectList(), walletNftsFlux.collectList()).flatMap { tuple ->
             val responseList = tuple.t1

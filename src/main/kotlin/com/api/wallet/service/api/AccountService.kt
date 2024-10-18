@@ -51,6 +51,7 @@ class AccountService(
 
     fun checkAccountNftId(address: String, nftId: Long): Mono<Boolean> {
         return redisService.getNft(nftId).flatMap {
+            println("redis : " + it.toString())
             accountNftRepository.findByNftIdAndWalletAddressAndChainType(it.id, address,it.chainType)
                 .hasElement()
         }
@@ -84,6 +85,7 @@ class AccountService(
         return findByAccountOrCreate(wallet)
             .map { account ->
                 val usdt = priceStorage.get(wallet.chainType.toTokenType())
+                println("usdt:" + usdt)
                 account.toResponse(usdt,wallet.chainType)
             }
     }
